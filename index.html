@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArchViz Experience Manual</title>
+<link rel="icon" type="image/png" href="images/icon.png">
+<meta name="description" content="User manual for the ArchViz Experience plugin for Unreal Engine 5.8: setting up an interactive architectural walkthrough and what visitors can do in it.">
+<style>
+@font-face { font-family: "Montserrat"; font-weight: 500; src: url("fonts/Montserrat-Medium.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Montserrat"; font-weight: 800; src: url("fonts/Montserrat-ExtraBold.ttf") format("truetype"); font-display: swap; }
+
+:root {
+  --bg: #0E0F11;
+  --surface: #15161A;
+  --surface-2: #1B1D21;
+  --line: #24262B;
+  --text: #ECECEE;
+  --muted: #A0A4AC;
+  --faint: #7D828B;
+  --gold: #CFAE62;
+  --gold-soft: rgba(207, 174, 98, 0.12);
+  --gold-line: rgba(207, 174, 98, 0.35);
+  --info: #6EA8FE;
+  --warn: #F0A04B;
+  --error: #FF6B5E;
+  --radius: 14px;
+  --body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --display: "Montserrat", var(--body);
+  --sidebar: 280px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; display: block; }
+
+/* Layout ------------------------------------------------------------------------------------- */
+.layout { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  border-right: 1px solid var(--line);
+  padding: 28px 22px 40px;
+  background: linear-gradient(180deg, #121316, var(--bg));
+}
+.sidebar .brand img { width: 190px; height: auto; }
+.sidebar .version { margin: 10px 0 26px; color: var(--faint); font-size: 13px; }
+.sidebar .version b { color: var(--gold); font-weight: 600; }
+.toc { list-style: none; margin: 0; padding: 0; font-size: 14.5px; }
+.toc .group { margin: 22px 0 6px; color: var(--faint); font: 500 11.5px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
+.toc a { display: block; padding: 5px 10px; border-radius: 8px; color: var(--muted); }
+.toc a:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+.toc a.active { background: var(--gold-soft); color: var(--gold); }
+.menu-toggle { display: none; }
+
+main { padding: 56px 64px 120px; max-width: 1180px; min-width: 0; }
+.layout > * { min-width: 0; }
+section { padding: 8px 0 40px; border-bottom: 1px solid var(--line); margin-bottom: 40px; }
+section:last-of-type { border-bottom: 0; }
+
+/* Type --------------------------------------------------------------------------------------- */
+h1, h2, h3 { font-family: var(--display); line-height: 1.2; }
+h1 { font-weight: 800; font-size: 44px; letter-spacing: .02em; margin: 0 0 14px; }
+h2 { font-weight: 800; font-size: 28px; letter-spacing: .01em; margin: 0 0 10px; }
+h3 { font-weight: 500; font-size: 18.5px; margin: 30px 0 8px; color: var(--text); }
+.eyebrow { font: 500 12px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+.lead { font-size: 19px; color: var(--muted); max-width: 760px; margin: 0 0 22px; }
+p { margin: 0 0 14px; max-width: 760px; }
+ul, ol { margin: 0 0 16px; padding-left: 22px; max-width: 760px; }
+li { margin: 4px 0; }
+strong { color: #fff; font-weight: 600; }
+.muted { color: var(--muted); }
+
+/* Inline UI names, keys and console commands: body font only (no monospace anywhere). */
+.ui { color: #fff; font-weight: 600; }
+kbd, .cmd {
+  font: 600 13.5px/1 var(--body);
+  display: inline-block; padding: 4px 8px; border-radius: 7px;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+  white-space: nowrap;
+}
+kbd { min-width: 24px; text-align: center; box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); }
+.cmd { color: var(--gold); border-color: var(--gold-line); background: var(--gold-soft); }
+
+/* Tab chapters: text + screenshot ---------------------------------------------------------- */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 44px; align-items: start; }
+.shots { display: grid; gap: 22px; }
+.split figure { margin: 6px 0 0; }
+figure { margin: 22px 0; }
+figure img {
+  border-radius: var(--radius); border: 1px solid var(--line);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45); cursor: zoom-in;
+}
+figcaption { color: var(--faint); font-size: 13.5px; margin-top: 10px; }
+.wide img { width: 100%; }
+
+/* Cards, callouts, tables ------------------------------------------------------------------ */
+.callout {
+  border: 1px solid var(--line); border-left: 3px solid var(--gold);
+  background: var(--surface); border-radius: 10px; padding: 14px 18px; margin: 18px 0; max-width: 760px;
+}
+.callout.tip { border-left-color: var(--gold); }
+.callout.note { border-left-color: var(--info); }
+.callout.warn { border-left-color: var(--warn); }
+.callout .label { display: block; font: 500 11.5px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; color: var(--gold); }
+.callout.note .label { color: var(--info); }
+.callout.warn .label { color: var(--warn); }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; max-width: 760px; }
+.steps > li { counter-increment: step; position: relative; padding: 2px 0 14px 48px; }
+.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold);
+  font: 800 14px/1 var(--display);
+}
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; margin: 18px 0 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+.card h4 { margin: 0 0 6px; font: 500 15.5px/1.3 var(--display); color: #fff; }
+.card p { margin: 0; font-size: 14.5px; color: var(--muted); }
+
+table { border-collapse: collapse; width: 100%; max-width: 820px; margin: 14px 0 20px; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 12px/1.2 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+td:first-child { white-space: nowrap; }
+
+.sev { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+.sev.e { background: var(--error); } .sev.w { background: var(--warn); } .sev.i { background: var(--info); }
+
+.hero { margin: 26px 0 10px; }
+.updated { color: var(--faint); font-size: 13.5px; margin-top: 60px; }
+
+/* Lightbox ---------------------------------------------------------------------------------- */
+dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 96vh; }
+dialog.lightbox::backdrop { background: rgba(5, 6, 8, .88); }
+dialog.lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 12px; cursor: zoom-out; }
+
+/* Narrow screens ----------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .split { grid-template-columns: 1fr; gap: 10px; }
+  .shots { max-width: 420px; }
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 18px 16px; }
+  .sidebar .version { margin-bottom: 10px; }
+  .menu-toggle { display: inline-block; margin-top: 4px; background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font: 600 14px var(--body); }
+  .toc { display: none; margin-top: 12px; }
+  .sidebar.open .toc { display: block; }
+  main { padding: 32px 16px 80px; }
+  h1 { font-size: 32px; }
+  h2 { font-size: 24px; }
+  td:first-child { white-space: normal; }
+  table { display: block; overflow-x: auto; }
+  kbd, .cmd { white-space: normal; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- Sidebar ----------------------------------------------------------------------------------- -->
+<nav class="sidebar" id="sidebar" aria-label="Contents">
+  <a class="brand" href="#welcome"><img src="images/lockup.png" alt="ArchViz Experience"></a>
+  <div class="version">Manual for <b>v1.0</b> · Unreal Engine 5.8</div>
+  <button class="menu-toggle" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')">Contents</button>
+  <ul class="toc">
+    <li class="group">Getting started</li>
+    <li><a href="#welcome">Welcome</a></li>
+    <li><a href="#install">Installation</a></li>
+    <li><a href="#quickstart">Quick start</a></li>
+    <li><a href="#mode">The ArchViz Experience mode</a></li>
+
+    <li class="group">Build the environment</li>
+    <li><a href="#tab-start">Start</a></li>
+    <li><a href="#tab-location">Location</a></li>
+    <li><a href="#tab-sky">Sky</a></li>
+    <li><a href="#tab-light">Light</a></li>
+    <li><a href="#tab-lamps">Lamps</a></li>
+    <li><a href="#tab-moods">Moods</a></li>
+    <li><a href="#tab-look">Look</a></li>
+    <li><a href="#tab-materials">Materials</a></li>
+    <li><a href="#tab-rooms">Rooms</a></li>
+    <li><a href="#tab-devices">Devices</a></li>
+
+    <li class="group">Visitor experience</li>
+    <li><a href="#tab-visitors">Visitors</a></li>
+    <li><a href="#tab-camera">Camera</a></li>
+    <li><a href="#tab-gallery">Gallery</a></li>
+    <li><a href="#tab-theme">Theme</a></li>
+    <li><a href="#tab-startup">Start-up</a></li>
+    <li><a href="#tab-checks">Checks</a></li>
+
+    <li class="group">In the experience</li>
+    <li><a href="#visit">What visitors can do</a></li>
+    <li><a href="#input">Desktop, touch and gamepad</a></li>
+
+    <li class="group">Reference</li>
+    <li><a href="#packaging">Packaging</a></li>
+    <li><a href="#console">Console commands</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#changes">What's new</a></li>
+    <li><a href="#credits">Credits</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<!-- Welcome ----------------------------------------------------------------------------------- -->
+<section id="welcome">
+  <div class="eyebrow">ArchViz Experience · Manual</div>
+  <h1>Interactive walkthroughs, set up in one panel</h1>
+  <p class="lead">ArchViz Experience turns an Unreal Engine level into a polished, interactive architectural visit: a glass interface for walking, orbiting, changing the light and finishes, browsing floor plans, taking photos and watching your films. It works for a house, a flat or an office.</p>
+  <p>Everything is set up in the <span class="ui">ArchViz Experience</span> editor mode, one tab per step, in the order you'd build the scene. All settings live on a single actor in the level, so a project carries its whole experience with it.</p>
+  <figure class="hero wide">
+    <img src="images/editor-overview.jpg" alt="The Unreal Editor with the ArchViz Experience mode panel on the left and the level in the viewport" loading="lazy">
+    <figcaption>The ArchViz Experience mode (left) next to the level. The North Point billboard in the viewport marks the Experience actor.</figcaption>
+  </figure>
+  <div class="cards">
+    <div class="card"><h4>Finished look on day one</h4><p>Physically based sun, sky, weather and exposure the moment you create the experience.</p></div>
+    <div class="card"><h4>Visitor modes</h4><p>Explore, Orbit, Lighting, Materials, Floor plan, Camera and Gallery, in one dock.</p></div>
+    <div class="card"><h4>Step-by-step setup</h4><p>Tabs follow the order you build a scene. The Start tab shows what's set and what's next.</p></div>
+    <div class="card"><h4>Checks before you ship</h4><p>The Checks tab finds what would break the visit and fixes most problems in one click.</p></div>
+  </div>
+</section>
+
+<!-- Installation ------------------------------------------------------------------------------ -->
+<section id="install">
+  <div class="eyebrow">Getting started</div>
+  <h2>Installation</h2>
+  <p>The plugin comes ready to run: it includes the compiled code for Windows, so there's nothing to build and no extra tools to install. It works in Blueprint-only projects as well as C++ projects.</p>
+  <h3>From Fab</h3>
+  <ol class="steps">
+    <li><strong>Install to the engine.</strong> In the Epic Games Launcher, open <span class="ui">Library</span>, find <span class="ui">ArchViz Experience</span> under Fab and choose <span class="ui">Install to Engine</span> for Unreal Engine 5.8.</li>
+    <li><strong>Enable it in your project.</strong> Open the project, go to <span class="ui">Edit › Plugins</span>, search for <span class="ui">ArchViz</span>, tick <span class="ui">ArchViz Experience</span> and restart the editor when asked.</li>
+  </ol>
+  <h3>From a download (zip)</h3>
+  <ol class="steps">
+    <li><strong>Unzip into the engine.</strong> Put the <span class="ui">ArchVizExperience</span> folder in your engine's <span class="ui">Engine/Plugins/Marketplace</span> folder, for example <span class="ui">C:/Program Files/Epic Games/UE_5.8/Engine/Plugins/Marketplace</span> (create the Marketplace folder if it isn't there).</li>
+    <li><strong>Enable it in your project.</strong> <span class="ui">Edit › Plugins</span>, search for <span class="ui">ArchViz</span>, tick <span class="ui">ArchViz Experience</span> and restart the editor.</li>
+  </ol>
+  <div class="callout tip"><span class="label">Tip</span><p>Installed in the engine, the plugin is available to every 5.8 project on that PC, and you update it in one place.</p></div>
+  <h3>Requirements</h3>
+  <ul>
+    <li>Unreal Engine 5.8.</li>
+    <li>Windows (64-bit).</li>
+    <li>The plugin enables what it needs: <span class="ui">Sun Position</span>, <span class="ui">Enhanced Input</span> and <span class="ui">Movie Render Queue</span>.</li>
+    <li>It sets custom depth with stencil (<span class="cmd">r.CustomDepth 3</span>) itself, for the surface outline in Materials mode. No project settings need editing.</li>
+  </ul>
+  <div class="callout note">
+    <span class="label">Plugin content</span>
+    <p>The plugin's assets appear in the Content Browser as <span class="ui">ArchViz Experience Content</span> (turn on <span class="ui">Show Plugin Content</span> in the Content Browser settings if you don't see it). Things the tool makes for your project, such as baked floor plans, imported videos and saved Lumen presets, are saved in your project under <span class="ui">Content/ArchVizExperience</span>, never inside the plugin, so updating the plugin never touches your work.</p>
+  </div>
+</section>
+
+<!-- Quick start ------------------------------------------------------------------------------- -->
+<section id="quickstart">
+  <div class="eyebrow">Getting started</div>
+  <h2>Quick start: a walkable level in a few minutes</h2>
+  <ol class="steps">
+    <li><strong>Open the mode.</strong> In the mode selector at the top left of the level editor, choose <span class="ui">ArchViz Experience</span> (shortcut <kbd>Shift</kbd> + <kbd>5</kbd>).</li>
+    <li><strong>Name the project.</strong> On the <span class="ui">Start</span> tab, type the name visitors will see.</li>
+    <li><strong>Choose the location.</strong> Pick the nearest major city and the date. The sun path, sky and moods follow from it.</li>
+    <li><strong>Choose the controls.</strong> <span class="ui">Desktop</span> (mouse and keyboard), <span class="ui">Touch</span> (touchscreen or tablet) or <span class="ui">Gamepad</span>. See <a href="#input">Desktop, touch and gamepad</a>.</li>
+    <li><strong>Create the experience.</strong> Press <span class="ui">Create experience in level</span>. The Experience is placed at the world origin with a finished default look, and the level is set to use the ArchViz game mode.</li>
+    <li><strong>Press Play.</strong> Walk with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, hold the right mouse button to look around, and open the modes from the dock.</li>
+  </ol>
+  <p>Then refine it tab by tab: add <a href="#tab-rooms">waypoints and floor plans</a>, mark <a href="#tab-materials">surfaces visitors can restyle</a>, link <a href="#tab-lamps">interior lights</a>, and run <a href="#tab-checks">Checks</a> before you package.</p>
+</section>
+
+<!-- The mode ---------------------------------------------------------------------------------- -->
+<section id="mode">
+  <div class="eyebrow">Getting started</div>
+  <h2>The ArchViz Experience mode</h2>
+  <p>The mode panel has three parts:</p>
+  <ul>
+    <li><strong>Header:</strong> the North Point lockup and <span class="ui">Select</span>, which selects the Experience actor in the level and Outliner. Before an Experience exists, <span class="ui">Set up</span> takes you to the Start tab.</li>
+    <li><strong>Rail:</strong> the tabs, in setup order. Environment first (Location to Rooms), then the visitor experience (Visitors to Theme), then Checks. A badge on Checks shows how many problems the level has.</li>
+    <li><strong>Tab:</strong> every tab opens with a title and a one-line purpose, followed by sections you can fold away. Folded sections stay folded between sessions.</li>
+  </ul>
+  <h3>The Experience actor</h3>
+  <p>All settings live on one actor, <span class="ui">BP_ArchVizExperience</span>. It owns the sun, sky light, atmosphere, height fog, clouds and post-process overrides, so a level needs nothing else to be lit. It always sits at the world origin (0, 0, 0) and can't be dragged away; in the viewport it shows only its North Point billboard, 50 cm above the floor.</p>
+  <div class="callout tip">
+    <span class="label">Tip</span>
+    <p>Every change made in the panel can be undone with <kbd>Ctrl</kbd> + <kbd>Z</kbd>, and the same values are also in the actor's Details panel if you prefer it.</p>
+  </div>
+  <div class="callout warn">
+    <span class="label">One per level</span>
+    <p>Keep a single Experience in the persistent level. Extra ones are ignored (Checks will flag them). Separate sun, sky light, fog or atmosphere actors light the level twice; Checks offers to delete them.</p>
+  </div>
+</section>
+
+<!-- Start ------------------------------------------------------------------------------------- -->
+<section id="tab-start">
+  <div class="eyebrow">Tab 1 · Build the environment</div>
+  <h2>Start</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Name the project, choose where it is, then create the experience. Then refine it step by step.</p>
+      <h3>Learn with the demo</h3>
+      <p>The plugin comes with a demo level: a finished three-storey home with every feature set up (finishes, packages, furniture options, moods, floor plans, waypoints, gallery). <span class="ui">Open demo level</span> on the Start tab opens it (it asks to save your level first). Explore it, press Play to walk through it as a visitor, and practise freely: nothing you change there needs saving. You can also find it in the Content Browser under <em>Plugins › ArchViz Experience › Demo › ArchVizDemo</em> (turn on <span class="ui">Show Plugin Content</span> in the Content Browser settings).</p>
+      <h3>Get started</h3>
+      <ul>
+        <li><span class="ui">Project name</span>: the title visitors see in the top-left corner, and the name of the default output folder for photos and videos (<span class="ui">Videos/&lt;name&gt;</span>).</li>
+        <li><span class="ui">Location</span>: the nearest major city fills in latitude, longitude, time zone and daylight saving; the date sets the sun's path. Fine-tune both on the <a href="#tab-location">Location</a> tab.</li>
+        <li><span class="ui">Controls</span>: how visitors will use it, <span class="ui">Desktop</span>, <span class="ui">Touch</span> or <span class="ui">Gamepad</span>. Desktop is chosen by default; change it any time on the <a href="#tab-visitors">Visitors</a> tab.</li>
+        <li><span class="ui">Create experience in level</span>: places the Experience at the world origin with your name, location, date and controls on top of the default look. The button stays dimmed until the project is named and a city chosen.</li>
+      </ul>
+      <h3>Quick setup</h3>
+      <p>Every new Experience starts with the <strong>default look</strong>: physically based lighting with natural exposure, a partly cloudy afternoon (15:30 on 21 June), light haze and a gentle filmic finish. The badge reads <span class="ui">Default look</span> or <span class="ui">Customised</span>. <span class="ui">Restore default look</span> puts lighting, sky, exposure, colour and the start-up time back, and keeps your location, lights, materials, rooms and theme.</p>
+      <h3>Refine, visitor experience, before you package</h3>
+      <p>The rest of the tab is a checklist of the other tabs. Each row opens its tab, and the line under it shows what's set now, for example <span class="ui">Partly cloudy · fog on</span> or <span class="ui">2 waypoint(s) · 1 floor plan(s) · 0 orbit point(s)</span>.</p>
+      <div class="callout note"><span class="label">Before the Experience exists</span><p>Other tabs are dimmed and show a preview with a notice until you create the Experience.</p></div>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-start.png" alt="Start tab" loading="lazy"><figcaption>Start tab after the Experience has been created.</figcaption></figure>
+      <figure><img src="images/tab-start-2.png" alt="Refine the environment: one row per tab, with what is set now." loading="lazy"><figcaption>Refine the environment: one row per tab, with what is set now.</figcaption></figure>
+      <figure><img src="images/tab-start-3.png" alt="Visitor experience and Before you package." loading="lazy"><figcaption>Visitor experience and Before you package.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Location ---------------------------------------------------------------------------------- -->
+<section id="tab-location">
+  <div class="eyebrow">Tab 2 · Build the environment</div>
+  <h2>Location</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Where the building is and on what date. The sun's path, sunrise and sunset follow from this.</p>
+      <h3>Site</h3>
+      <ul>
+        <li><span class="ui">City</span>: fills in the site below. Editing a value by hand turns it into a <span class="ui">Custom location</span>.</li>
+        <li><span class="ui">Latitude</span> (north +, south −) and <span class="ui">Longitude</span> (east +, west −) in degrees.</li>
+        <li><span class="ui">Time zone</span> (UTC offset), <span class="ui">Daylight saving time</span> and its rule (for example Europe: last Sunday of March to last Sunday of October).</li>
+        <li><span class="ui">Date</span>: the day the sun path is computed for.</li>
+        <li><span class="ui">North offset</span>: turns true north relative to the level, so the sun comes from the right side of a model that isn't aligned to the world axes.</li>
+      </ul>
+      <p>A summary underneath shows the sun at the start-up time, for example <em>“18:45, 21 Jun 2026: 21° above the horizon, in the WNW. Sunrise 04:43 · sunset 21:22 (daylight saving).”</em></p>
+      <h3>Level overrides (sub-levels)</h3>
+      <p>Give a streamed sub-level its own location, date, time, sky or look, for example a separate show flat in another city. Make the sub-level current in the <span class="ui">Levels</span> window, then press <span class="ui">Add override to the current level</span>. While that sub-level is visible in the visit, the Experience uses the override's ticked values (time and weather blend in) and switches back when it unloads. The highest priority wins. Only one Experience is needed, in the persistent level.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-location.png" alt="Location tab" loading="lazy"><figcaption>Location tab: site and sun summary.</figcaption></figure>
+      <figure><img src="images/tab-location-2.png" alt="Level overrides for streamed sub-levels." loading="lazy"><figcaption>Level overrides for streamed sub-levels.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Sky --------------------------------------------------------------------------------------- -->
+<section id="tab-sky">
+  <div class="eyebrow">Tab 3 · Build the environment</div>
+  <h2>Sky</h2>
+  <div class="split">
+    <div>
+      <p class="lead">What's overhead: the physical sky with weather presets, or a photographed HDRI sky, plus the height fog and the stars at night.</p>
+      <h3>Sky source</h3>
+      <ul>
+        <li><span class="ui">Physical sky</span>: atmosphere and volumetric clouds. The sun follows the location, date and time, and the weather presets apply.</li>
+        <li><span class="ui">HDRI</span>: a photographed sky from a Texture Cube (import an .hdr or .exr panorama). Set its <span class="ui">Rotation</span> and <span class="ui">Brightness</span>. With <span class="ui">Sun from the HDRI</span> the tool finds the sun in the image and matches its direction, intensity, colour and shadow softness; <span class="ui">Fog from the HDRI</span> takes the haze colour from its horizon. If the HDRI has no clear sun (overcast), the light is soft and even, with a faint key from the brightest part of the sky; <span class="ui">Light level</span> sets how strong. Press <span class="ui">Re-read HDRI</span> after re-importing the texture.</li>
+      </ul>
+      <div class="callout note"><span class="label">HDRI sky</span><p>While the HDRI is the sky, weather presets and clouds are off, and location, date and time of day don't move the sun.</p></div>
+      <h3>Weather</h3>
+      <p>Three presets, all photoreal volumetric clouds:</p>
+      <ul>
+        <li><span class="ui">Clear</span>: deep blue sky with a few small distant clouds, crisp sun shadows.</li>
+        <li><span class="ui">Partly cloudy</span>: scattered cumulus with bright tops; cloud shadows drift across the site.</li>
+        <li><span class="ui">Overcast</span>: a continuous soft grey deck, no hard shadows, even light and a hazier horizon.</li>
+      </ul>
+      <p>The selected tile is the weather when the visit starts; visitors can switch it in the Lighting drawer. <span class="ui">Change time</span> sets how long a weather change takes, and <span class="ui">Cloud quality</span> trades finer clouds for GPU time.</p>
+      <h3 id="rain-snow">Rain and snow</h3>
+      <p>Rain or snow falls on top of whichever sky is chosen: <span class="ui">Precipitation</span> (None, Rain or Snow) and <span class="ui">Precipitation intensity</span> (0.2 drizzle or a few flakes, 0.6 steady, 1 a downpour or heavy snow) in the Experience's Weather settings. Rain and snow bring their own lower, darker cloud deck, so they also work over a Clear sky; the air thickens (snow most) and the sun dims. They fade in and out over the same <span class="ui">Change time</span>.</p>
+      <ul>
+        <li><strong>Never indoors.</strong> The Experience keeps a small top-down map of the roofs around the visitor, so drops and flakes stop at the roof but still fall outside the windows.</li>
+        <li><strong>Wet ground, puddles, snow cover.</strong> Surfaces using the weather material (see <a href="#weather-materials">Weather on materials</a>) get wet in about 15 seconds of steady rain, puddles spread over about 40 seconds, and everything dries over a couple of minutes after it stops. Snow settles over about 45 seconds, first in patches that grow together, and melts slowly, quickly in rain. Places under a roof stay dry; under trees and other high cover the snow thins out gradually with a soft edge, and it leaves a bare gap along walls and around trunks and posts. Leaves keep their snow (the foliage material turns the gaps off with the weather function's <span class="ui">ContactGaps</span> input).</li>
+        <li><strong>Ripples and splashes.</strong> Each drop sends a train of concentric rings across the puddles, overlapping like a real puddle in the rain, faint drop marks show on wet surfaces, and small splashes jump where drops land on open ground, puddles and wall tops.</li>
+      </ul>
+      <figure><img src="images/visitor-rain.jpg" alt="Steady rain over the house: light slanted streaks against the ground and a grey sky" loading="lazy"><figcaption>Rain at intensity 0.8 over a Partly cloudy sky: the deck closes in and the streaks catch the light.</figcaption></figure>
+      <p>Set them in the <span class="ui">Rain &amp; snow</span> section: <span class="ui">Dry</span>, <span class="ui">Rain</span> or <span class="ui">Snow</span>, and <span class="ui">Intensity</span>. The viewport previews the cloud deck and wet or snowy surfaces straight away; the falling rain and snow show in Play. Visitors switch them in the Lighting drawer.</p>
+      <figure><img src="images/tab-sky-precip.png" alt="Rain and snow section of the Sky tab: Dry, Rain and Snow tiles, the Intensity slider and a hint" loading="lazy"><figcaption>Rain &amp; snow on the Sky tab (Dry selected; Intensity applies to rain and snow).</figcaption></figure>
+      <h3 id="trees-seasons">Trees and seasons</h3>
+      <p>Trees and plants follow the site's date and hemisphere (Start tab: city and date). Give their leaves <span class="ui">M_ArchViz_Foliage</span> (cut-out leaves, light through them, wet in rain, snow settling on top) and set, per tree:</p>
+      <ul>
+        <li><span class="ui">BloomColor</span> and <span class="ui">BloomStrength</span>: flowers in late spring (a jacaranda turns purple in late May in the north, November in the south).</li>
+        <li><span class="ui">AutumnColor</span> and <span class="ui">AutumnStrength</span>: leaves turn in autumn.</li>
+        <li><span class="ui">WinterLeafLoss</span>: how many leaves fall in winter (0 = evergreen, like a fir).</li>
+      </ul>
+      <p>Clusters change at different times, so a tree turns gradually. Near the equator autumn and winter fade out. Bark can use the weather material (M_ArchVizExterior). The demo has a jacaranda and three firs around the house.</p>
+      <h3 id="ambient-sound">Ambient sound</h3>
+      <p>The visit has a soundscape that follows the world: birds by day, crickets from dusk (evening is where the two overlap), wind that rises under cloud, in rain and most in snow, and rain when it rains. Rain quiets the birds and stops the crickets. Inside (a roof overhead) the outside drops to <span class="ui">Indoor level</span> behind a muffling filter and the rain becomes rain on the windows. A room can have its own sound (see <a href="#room-sounds">Room sounds</a>).</p>
+      <p>Settings are in the Experience's Details panel under Sound: the on/off switch, <span class="ui">Volume</span>, <span class="ui">Indoor level</span>, <span class="ui">Fade time</span>, and (advanced) the five recordings, which you can swap for your own looping sounds. The built-in ones are CC0 recordings (see <a href="#credits">Credits</a>). <span class="cmd">ArchViz.Sound</span> mutes, unmutes or sets the volume during Play and logs each layer.</p>
+      <h3>Fog</h3>
+      <p><span class="ui">Apply fog</span> lets the Experience set the height fog: visibility and <span class="ui">Volumetric fog</span> (light shafts, costs performance).</p>
+      <h3 id="night-sky">Night sky</h3>
+      <p>After sunset the physical sky fills with real stars and the Milky Way, from NASA's Deep Star Maps (a photographic all-sky map built from the Gaia, Hipparcos and Tycho star catalogues). The sky is turned to where the stars really are for the site, date and time on the <a href="#tab-location">Location</a> tab, so the Pole Star sits over north and the Milky Way rises and sets through the night. The stars fade in through twilight (the brightest from the sun about 4° below the horizon, most by 10°, fully dark at 12°, so a midsummer night in northern Europe keeps a light sky), thin under partly cloudy skies and mostly vanish when it's overcast. A warm glow from nearby towns sits on the horizon and fades upwards; under cloud it lights the clouds from below, so an overcast night is brighter, not darker.</p>
+      <ul>
+        <li><span class="ui">Stars and Milky Way</span>: turn the night sky on or off.</li>
+        <li><span class="ui">Star brightness</span>: 1× looks like a dark site to eyes used to the night. Raise it for a more dramatic, long-exposure sky; above about 4× auto exposure balances most of the gain away.</li>
+        <li><span class="ui">Light pollution (horizon glow)</span>: how bright the town glow is, from <em>Dark site</em> (only faint natural airglow) through <em>Rural</em> and <em>Suburban</em> (the default) to <em>City centre</em>, where the glow climbs high and washes out the fainter stars. It works with the stars switched off too.</li>
+      </ul>
+      <p>The stars belong to the physical sky; an HDRI sky shows its own. If the level opens at night, the editor viewport shows them too.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-sky.png" alt="Sky tab" loading="lazy"><figcaption>Sky tab with the Partly cloudy preset selected.</figcaption></figure>
+      <figure><img src="images/tab-sky-2.png" alt="Sky source: Physical sky or HDRI (the HDRI settings are dimmed while Physical sky is chosen)." loading="lazy"><figcaption>Sky source: Physical sky or HDRI (the HDRI settings are dimmed while Physical sky is chosen).</figcaption></figure>
+      <figure><img src="images/tab-sky-night.png" alt="Night sky section of the Sky tab: the Stars and Milky Way switch and the Star brightness slider" loading="lazy"><figcaption>Night sky: stars on, at their default brightness.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Light ------------------------------------------------------------------------------------- -->
+<section id="tab-light">
+  <div class="eyebrow">Tab 4 · Build the environment</div>
+  <h2>Light</h2>
+  <div class="split">
+    <div>
+      <p class="lead">How strong the sun and sky are. Physically based lighting sets real-world values, and the exposure, for you.</p>
+      <h3>Physically based lighting</h3>
+      <p>On by default. It uses real-world values for the sun, sky, lamps and exposure, so interiors and exteriors balance like a real camera would see them.</p>
+      <ul>
+        <li><span class="ui">Convert level lights</span>: point, spot and rect lights in the level are set to real lumens, including ones you add later.</li>
+        <li><span class="ui">Exposure compensation</span>: from <span class="ui">Darker</span> through <span class="ui">True to life</span> to <span class="ui">Brighter</span>, in stops.</li>
+        <li><span class="ui">Sun illuminance</span>: above the atmosphere (about 100,000 lux reaches the ground at noon).</li>
+        <li>Lamp outputs: <span class="ui">Bulb / pendant</span> (point lights, 800 lm = 60 W LED), <span class="ui">Downlight / spot</span> (600 lm), <span class="ui">Panel / strip</span> (rect lights, 3,000 lm for a 60 × 60 cm panel).</li>
+        <li>Eye adaptation: <span class="ui">Darkest</span> and <span class="ui">Brightest adaptation</span> (EV100 −2 = moonlit exterior, 16 = noon sun on bright surfaces), and how fast eyes adapt to brightness (stepping outside) and darkness (stepping inside, slower, like real eyes).</li>
+        <li><span class="ui">Local exposure</span>: keeps detail in bright windows and dark corners.</li>
+      </ul>
+      <h3>Sun &amp; sky</h3>
+      <p>With physically based lighting off, set the sun yourself: intensity in lux, colour temperature, shadow softness, and <span class="ui">Sun at the horizon</span> (full elevation and off elevation, so the sun fades in and out at sunrise and sunset). While an HDRI is the sky, the sun follows the HDRI instead.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-light.png" alt="Light tab" loading="lazy"><figcaption>Light tab with physically based lighting on.</figcaption></figure>
+      <figure><img src="images/tab-light-2.png" alt="Sun &amp; sky (set by physically based lighting while it is on) and Sun at the horizon." loading="lazy"><figcaption>Sun &amp; sky (set by physically based lighting while it is on) and Sun at the horizon.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Lamps ------------------------------------------------------------------------------------- -->
+<section id="tab-lamps">
+  <div class="eyebrow">Tab 5 · Build the environment</div>
+  <h2>Lamps</h2>
+  <div class="split">
+    <div>
+      <p class="lead">The interior lights visitors can dim and warm up, how they're set when the visit starts, and the outdoor lights that come on at dusk.</p>
+      <h3>Interior lights</h3>
+      <p>Select light actors in the level and press <span class="ui">Add selected lights</span>, or give lights the <span class="ui">Auto-include tag</span> (they're added when the visit starts). Click a row to select the light and move the viewport to it.</p>
+      <div class="callout warn"><span class="label">Movable lights</span><p>The dimmer can only change lights set to <span class="ui">Movable</span> (or Stationary). Checks flags Static ones and makes them Movable in one click.</p></div>
+      <h3>When the visit starts</h3>
+      <p><span class="ui">Interior light level</span> (0 to 100%) and <span class="ui">Interior warmth</span> (from warm to cool, in kelvin) are the values the visit opens with. Visitors change both in the Lighting drawer.</p>
+      <h3>Outdoor lights</h3>
+      <p>Street lamps, garden and facade lights switch on by themselves at dusk and off at dawn, following the sun like a real photocell. Select the lamp actors (each with a light component) and press <span class="ui">Make selected outdoor lights</span>; it gives them the <span class="ui">Outdoor light tag</span> (ArchVizExterior). Their placed brightness is "fully on" (a street lantern is 2,000 to 5,000 lumens).</p>
+      <ul>
+        <li><span class="ui">Switch on at dusk</span>: off leaves the lights as placed, day and night.</li>
+        <li><span class="ui">Switch at sun height</span>: 0 is sunset; a negative value switches later, in twilight. The lights fade over a degree either side.</li>
+        <li><span class="ui">Outdoor warmth</span>: the colour of the lights and their bulbs (LED street lights are 3,000 to 4,000 K).</li>
+      </ul>
+      <p>To make the lamp's glass glow with them, use <span class="ui">MI_LampBulb_Street</span> (M_ArchViz_LampBulb with Exterior Light on) on it. Put the light inside the lantern and keep the glass as a separate mesh with <span class="ui">Cast Shadow</span> off, so the glass doesn't block its own light while the post and frame still cast shadows. The demo has two street lamps beside the house.</p>
+    </div>
+    <figure><img src="images/tab-lamps.png" alt="Lamps tab" loading="lazy"><figcaption>Lamps tab with two interior lights on the dimmer.</figcaption></figure>
+  </div>
+</section>
+
+<!-- Moods ------------------------------------------------------------------------------------- -->
+<section id="tab-moods">
+  <div class="eyebrow">Tab 6 · Build the environment</div>
+  <h2>Moods</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Lighting presets visitors can tap (morning, midday, dusk, night...) and the lighting the visit opens with.</p>
+      <h3>Lighting presets</h3>
+      <p>Each mood is an <span class="ui">ArchViz Lighting Preset</span> data asset: a name, an icon, a time of day, and the interior light level and warmth. Four come with the plugin: Morning, Midday, Dusk and Night. Press <span class="ui">Add</span> for another, and use the tile menu to open the preset, reorder it or remove it.</p>
+      <p>Click a tile to choose its thumbnail: one of the line icons in the interface's style, or your own image (a white-on-transparent icon is drawn like the UI icons; a picture fills the tile, 16:10 looks best). <span class="ui">Add mood icons</span> gives every mood without a thumbnail the icon matching its name.</p>
+      <p>Without presets, the Lighting drawer shows its built-in defaults.</p>
+      <h3>When the visit starts</h3>
+      <p>Choose a <span class="ui">Default preset</span>, or set the <span class="ui">Time of day</span> the visit opens at.</p>
+    </div>
+    <figure><img src="images/tab-moods.png" alt="Moods tab" loading="lazy"><figcaption>Moods tab with the four bundled presets.</figcaption></figure>
+  </div>
+</section>
+
+<!-- Look -------------------------------------------------------------------------------------- -->
+<section id="tab-look">
+  <div class="eyebrow">Tab 7 · Build the environment</div>
+  <h2>Look</h2>
+  <div class="split">
+    <div>
+      <p class="lead">The final image: brightness and eye adaptation, colour and lens effects, Lumen ambient occlusion and quality, and any console variables.</p>
+      <h3>Exposure</h3>
+      <p>While physically based lighting is on, it sets the exposure; use its exposure compensation on the Light tab. Otherwise choose automatic exposure (compensation, darkest and brightest adaptation, adaptation speeds) or a manual physical camera (ISO, shutter speed, aperture). Turn <span class="ui">Apply exposure</span> off to let the level's post-process volume decide.</p>
+      <h3>Colour &amp; effects</h3>
+      <p>Folded by default. White balance and tint, saturation, contrast, bloom, lens flare, vignette, chromatic aberration, film grain and the filmic tone curve (slope, toe, shoulder, black clip). Turn <span class="ui">Apply post</span> off to let the level's post-process volume decide.</p>
+      <h3>Lumen · ambient occlusion &amp; bounce light</h3>
+      <p>Three built-in presets: <span class="ui">Interactive</span> (real-time default), <span class="ui">High quality</span> (twice the gather, glass reflections) and <span class="ui">Stills</span> (maximum, for renders). Under them the full Lumen settings are grouped as:</p>
+      <ul>
+        <li><span class="ui">Ray tracing</span>: hardware ray tracing and hit lighting (best reflections).</li>
+        <li><span class="ui">Global illumination</span>: bounce-light quality, scene detail, reach (too short = light leaks into big rooms) and noise.</li>
+        <li><span class="ui">Ambient occlusion &amp; sky leaking</span>: AO strength (default 20%), contact shadows, sky light leaking (not physical: 0 = real) and bounce colour boost (1 = physical).</li>
+        <li><span class="ui">Reflections</span> and <span class="ui">Translucency &amp; glass</span>.</li>
+      </ul>
+      <p>Type a name and press <span class="ui">Save current as preset</span> to keep your own (saved in your project under <span class="ui">Content/ArchVizExperience/Presets/Lumen</span>; the same name updates it).</p>
+      <h3>Console variables</h3>
+      <p>Add any console variable with a value; matching names are suggested as you type. They're set when the visit starts. <span class="ui">Load from file…</span> reads name=value lines from an .ini, .txt or .cfg file; <span class="ui">Save to file…</span> writes the list so you can reuse it in other projects.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-look.png" alt="Look tab" loading="lazy"><figcaption>Look tab: exposure, colour and Lumen presets.</figcaption></figure>
+      <figure><img src="images/tab-look-colour.png" alt="Colour &amp; effects opened: bloom, lens flare, vignette, aberration, grain, white balance..." loading="lazy"><figcaption>Colour &amp; effects opened: bloom, lens flare, vignette, aberration, grain, white balance...</figcaption></figure>
+      <figure><img src="images/tab-look-2.png" alt="Lumen presets, Save current as preset, and the Lumen setting groups." loading="lazy"><figcaption>Lumen presets, Save current as preset, and the Lumen setting groups.</figcaption></figure>
+      <figure><img src="images/tab-look-3.png" alt="Console variables, with Load from file and Save to file." loading="lazy"><figcaption>Console variables, with Load from file and Save to file.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Materials --------------------------------------------------------------------------------- -->
+<section id="tab-materials">
+  <div class="eyebrow">Tab 8 · Build the environment</div>
+  <h2>Materials</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Which surfaces visitors can restyle, and the finishes (swatches) they can pick from.</p>
+      <h3>Surfaces in this level</h3>
+      <p>Select the actors visitors may restyle in the viewport, such as a floor, a feature wall or a kitchen island, and press <span class="ui">Make selected customisable</span>. Each gets a customisable surface named for visitors from the actor (<em>SM_Kitchen_Island</em> reads “Kitchen Island”). An actor with several materials gets one surface per material, for example “Kitchen Unit · Worktop” and “Kitchen Unit · Doors”, so visitors restyle each part on its own. Materials that already have a surface are skipped, and Ctrl+Z undoes the lot. Rename a surface in the Details panel (<span class="ui">Surface Name</span>).</p>
+      <p>Each row shows the surface's swatches; <span class="ui">Select</span> moves the viewport to it. Press <span class="ui">Edit</span> to set the surface up in place:</p>
+      <ul>
+        <li><strong>Name</strong>: what visitors see in the Materials drawer.</li>
+        <li><strong>Parts</strong> (actors with several materials): tick which materials this surface restyles, for example the doors and the plinth together.</li>
+        <li><strong>Finishes visitors can pick</strong>: <span class="ui">Add selected from Content Browser</span> takes swatches, or materials and material instances (made into swatches first). Reorder or remove them with the arrows and cross. A surface with none of its own uses the fallback list; <span class="ui">Copy fallback here</span> gives it its own copy to trim.</li>
+        <li><strong>Preview</strong> (play button): shows the finish on the surface in the viewport, exactly as the visit will. Press it again, close the row or leave the tab to stop. A preview is never saved, and it ends on its own when you save or press Play.</li>
+        <li><strong>Start</strong> (pin button): the finish the visit starts with. Press it again to start with the model's own material.</li>
+      </ul>
+      <h3>Finishes from your materials</h3>
+      <p>Select materials or material instances in the Content Browser (Ctrl+click for several) and press <span class="ui">Create swatches from selected materials</span>. Each becomes a swatch named from the material (<em>MI_Oak_Floor_01</em> reads “Oak Floor”) with a rendered preview tile, saved in <em>/Game/ArchVizExperience/Swatches</em>. A material that already has a swatch reuses it. If surfaces are selected in the viewport the swatches go to those surfaces; otherwise they go to the fallback list.</p>
+      <h3>Fallback swatches</h3>
+      <p>Used by surfaces with no swatches of their own. A swatch is an <span class="ui">ArchViz Swatch</span> data asset: a material (or material instance) plus a name and optional thumbnail. Twelve come with the plugin, from oak and walnut to Calacatta marble and brushed steel; Oak and Walnut use real CC0 wood textures from Poly Haven.</p>
+      <p>For your own textured finishes, make an instance of <em>M_ArchViz_SurfaceTextured</em> (in the plugin's Materials/Surfaces folder) and set its colour, ARM (AO / roughness / metal) and normal maps, plus <span class="ui">TileSize</span>: the real size of the texture in centimetres. It projects in world space, so it tiles at the right scale on any mesh, whatever its UVs. Then make swatches from it with <span class="ui">Create swatches from selected materials</span>.</p>
+      <h3>Swatch thumbnails</h3>
+      <p><span class="ui">Generate swatch thumbnails</span> renders a preview tile for every swatch from its material and saves it next to the swatch. Swatches with your own thumbnail are left alone. Run it again after changing a swatch.</p>
+      <h3>Décor styles (finish packages)</h3>
+      <p>A style is a named set of finishes for every customisable surface, plus the chosen option in each <a href="#options">Options</a> group (and each Variant Manager set, if you use them). Set the level up the way you want it, type a name and press <span class="ui">Save current look as style</span>; a thumbnail is captured from the viewport. Each style in the list has <span class="ui">Apply</span>, <span class="ui">Update</span> (save the current look into it) and a name, description and picture you can edit.</p>
+      <p>Visitors see the styles twice: in the front end's menu (“Choose a style”, see <a href="#tab-startup">Start-up</a>) and as <strong>Packages</strong> at the top of the Materials drawer during the visit, where one tap restyles every room. A site's styles come from its entry on the Start-up tab; without one, every style saved from the level is offered.</p>
+    </div>
+    <figure><img src="images/tab-materials.png" alt="Materials tab: Make selected customisable, then four surfaces each with Select and Edit" loading="lazy"><figcaption>Materials tab: make selected actors customisable, then Edit a surface.</figcaption></figure>
+    <figure><img src="images/tab-materials-edit.png" alt="Kitchen Island opened with Edit: name, finishes with preview, start, reorder and remove buttons, and Add selected from Content Browser" loading="lazy"><figcaption>A surface opened with Edit: Brushed Steel previewing in the viewport, White Quartz as the starting finish.</figcaption></figure>
+  </div>
+  <div class="split" id="options" style="margin-top:28px">
+    <div>
+      <h3>Options (layouts &amp; furniture)</h3>
+      <p>Alternatives visitors switch between in the Materials drawer, such as <em>Furnished</em> / <em>Unfurnished</em>, two kitchen layouts or a study that can be a bedroom. Options are grouped: each <strong>group</strong> (e.g. Furniture) has two or more <strong>options</strong>, and each option is simply a set of actors already placed in the level. Choosing an option shows its actors (with collision) and hides the actors of the group's other options. An option can be empty: choosing it just hides the others, which is how <em>Unfurnished</em> works.</p>
+      <ol>
+        <li>Place every alternative in the level, e.g. the furniture you want to be removable.</li>
+        <li>Select the actors of the first option in the viewport and press <span class="ui">Add group</span>. It creates a group with those actors as the first option and an empty second option. Name the group and both options.</li>
+        <li>To fill another option, select its actors and press its <span class="ui">Use selected actors</span>. <span class="ui">Add option</span> adds one more option from the selection.</li>
+        <li>Tick the option the visit should start with (the round button on its left).</li>
+      </ol>
+      <p>Each option shows how many actors it has (or “empty”), with <span class="ui">Preview</span> to show that option in the editor viewport and <span class="ui">Select</span> to select its actors. A preview only changes what you see while editing; nothing is saved, and <span class="ui">Show all</span> brings every actor back. The × buttons remove an option or a whole group (the actors stay in the level).</p>
+      <p><a href="#tab-materials">Décor styles</a> remember the option chosen in each group when you save them: the visitor's choice when you save during Play, otherwise the ticked options. Applying a style switches them back. Styles saved before you added options don't include them; press <span class="ui">Update</span> on the style to add them.</p>
+    </div>
+    <figure><img src="images/tab-materials-options.png" alt="Options section on the Materials tab: a Furniture group with Furnished (3 actors, ticked) and Unfurnished (empty), each with Use selected actors, Preview and Select, then Add option, Add group and Show all" loading="lazy"><figcaption>An Options group: Furnished (ticked, the visit starts with it) and an empty Unfurnished.</figcaption></figure>
+  </div>
+  <div id="weather-materials" style="margin-top:28px">
+    <h3>Weather on materials (puddles, snow)</h3>
+    <p>Outdoor surfaces only react to <a href="#rain-snow">rain and snow</a> when their material includes the weather function. Two ways:</p>
+    <ul>
+      <li><strong>Use the master material.</strong> Make a material instance of <span class="ui">M_ArchVizExterior</span> (ArchViz Experience › Weather) and set its base colour map, tint, roughness, metallic, normal map and UV scale. Its <span class="ui">Weather</span> switch is on by default; turn it off for surfaces that should never get wet (inside a covered porch, for example).</li>
+      <li><strong>Add it to your own material.</strong> Drop the <span class="ui">MF_ArchVizWeather</span> function between your material and its outputs: route Base Color, Roughness, Normal and Metallic into it and its outputs into the material. Nothing else is needed; it reads the weather from <span class="ui">MPC_ArchVizWeather</span>.</li>
+    </ul>
+    <p>Puddles form only on flat, upward-facing surfaces (terraces, paths, flat roofs, wall tops), snow settles on anything facing up, and walls get a lighter wetting. The test pieces in the demo level (House › Exterior › WeatherTest) show all three.</p>
+    <figure><img src="images/weather-puddles.jpg" alt="Wet paving with a puddle reflecting the house, rain rings of different sizes and small splashes" loading="lazy"><figcaption>M_ArchVizExterior in heavy rain: a puddle mirroring the house, covered in overlapping trains of rain rings.</figcaption></figure>
+    <figure><img src="images/visitor-snow-cover.jpg" alt="Snow settled on the terrace, the top of the low wall and the bench; their sides stay bare" loading="lazy"><figcaption>Snow cover on everything facing up (the ground here uses a plain material, so it stays dark).</figcaption></figure>
+    <div class="callout note"><span class="label">Normal maps</span><p>Wet surfaces are glossy, so any relief in their normal map shows clearly in the reflections. Leave <span class="ui">Normal Map</span> at its default (flat) for smooth paving, or give it the surface's real normal map.</p></div>
+  </div>
+</section>
+
+<!-- Rooms ------------------------------------------------------------------------------------- -->
+<section id="tab-rooms">
+  <div class="eyebrow">Tab 9 · Build the environment</div>
+  <h2>Rooms</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Places visitors can teleport to, the floor plans for each storey, where Orbit view circles the building, the dollhouse cut and info points.</p>
+      <h3>Waypoints</h3>
+      <p><span class="ui">Add waypoint</span> places an anchor on the floor where the viewport is looking. Give each a <span class="ui">Room Name</span> (its label) and a unique <span class="ui">Room Id</span>, which links it to its marker on the floor plan. Visitors click the floating markers, or the room on the plan, to move there. In the level, each waypoint shows a blue pin icon a metre above the floor (editor only), and its arrow marks the landing spot on the floor. Keep that spot clear: a visitor who would land inside furniture or a wall is moved to the nearest free spot, and the Checks tab names anything standing on a landing spot.</p>
+      <p id="room-sounds"><strong>Room sounds.</strong> A waypoint's <span class="ui">Room Sound</span> (a fire, a kitchen, a water feature; a looping sound) plays while the visitor is in that room, at <span class="ui">Room Sound Volume</span>, and fades out as they leave. Set both in the waypoint's Details panel.</p>
+      <h3>Floor plans</h3>
+      <p>One volume per storey. <span class="ui">Add floor plan</span>, then size the box around the storey with its bottom face on the floor and set its <span class="ui">Floor Index</span>. <span class="ui">Bake plan</span> draws a clean plan from the geometry inside the volume (walls, furniture, floor) and saves it as a texture in your project. Re-bake after changing the building or the plan colours on the <a href="#tab-theme">Theme</a> tab. You can also use your own plan image.</p>
+      <h3>Room areas</h3>
+      <p><span class="ui">Bake plan</span> also measures each storey's inside floor area (walls excluded) and the area of each waypoint's room. Doorways count as walls; where rooms open into each other, the space is split halfway between their waypoints, and a space without a waypoint isn't counted in any room. Visitors see “Kitchen · 18.4 m²” on the room labels and “Ground Floor · 134 m² · Home 408 m²” at the top of the plan.</p>
+      <p>Under the floor plans: <span class="ui">Units</span> (Metric m² or Imperial sq ft), <span class="ui">Show room areas</span> and <span class="ui">Show totals</span>. To use the architect's figures, set <span class="ui">Area Override</span> on a waypoint or a floor-plan volume (Details panel); turn <span class="ui">Show Area</span> off on waypoints such as stairs and landings. Bake again after changing walls or moving waypoints.</p>
+      <h3>Orbit points</h3>
+      <p>Visitors press <span class="ui">Orbit</span> in the dock to fly out and circle the building. Without orbit points, Orbit frames the whole site. To choose the start view, frame the shot in the viewport and press <span class="ui">Add orbit point (uses this view)</span>: the direction, distance and height of your view become its start view. Each point has its own distance and angle limits, pan radius, optional turntable and an optional <span class="ui">Transition time</span> (0 = the Orbit transition set on the Visitors tab). The highest <span class="ui">Order</span> is where Orbit starts; <span class="ui">Preview</span> moves the viewport to a point's start view.</p>
+      <h3 id="dollhouse">Dollhouse (Orbit: Cut open)</h3>
+      <p>In Orbit, visitors can cut a storey open and look down into its rooms like a dollhouse. Nothing to build: the cut comes from the floor-plan volumes. For the chosen storey everything above its box (upper floors, slabs, the roof) is hidden, plus its own ceilings: flat actors whose bottom lies in the top band of the box (<span class="ui">Ceiling band</span>, 80 cm by default). Actors tagged <span class="ui">ArchVizHideInPlan</span> count as that storey's ceiling too. Walls that start on the storey stay whole, and lights keep working.</p>
+      <p>Each storey in the <span class="ui">Dollhouse</span> section shows how many actors its cut hides, with:</p>
+      <ul>
+        <li><span class="ui">Preview cut</span>: shows the storey cut open in the editor viewport and looks down into it, the way visitors will see it. It's only a preview (nothing is hidden or saved); <span class="ui">End preview</span> brings everything back.</li>
+        <li><span class="ui">Ceiling band</span>: widen it if a ceiling stays, narrow it if high cabinets or a range hood disappear.</li>
+        <li><span class="ui">Always hide</span> / <span class="ui">Never hide</span>: add the actors selected in the viewport to the storey's lists, for anything the automatic rule gets wrong (a dropped ceiling, a double-height wall, a pendant light you want to keep). The × clears both lists.</li>
+      </ul>
+      <p>The cut works per actor: a building merged into one mesh can't be cut open. Turn the dollhouse on or off with <span class="ui">Dollhouse</span> on the <a href="#tab-visitors">Visitors</a> tab.</p>
+      <h3>Info points</h3>
+      <p>Clickable “i” markers for specifications: a worktop, the flooring, a window, an appliance. Look at the spot in the viewport and press <span class="ui">Add info point</span>: it's placed on that surface and selected. Fill in the Details panel:</p>
+      <ul>
+        <li><span class="ui">Title</span>: the card heading, also shown above the marker on hover.</li>
+        <li><span class="ui">Body</span>: the text (materials, sizes, finishes…). Long text scrolls.</li>
+        <li><span class="ui">Pictures</span>: one or more textures; visitors switch between them with arrows.</li>
+        <li><span class="ui">Link Url</span> and <span class="ui">Link Label</span>: an optional button that opens a web page (brochure, spec sheet) in the browser. Leave it empty on locked-down kiosks.</li>
+      </ul>
+      <p>Markers show while exploring, get smaller with distance, hide behind walls and fade out beyond <span class="ui">Hide Distance</span> (18 m). Turn them all on or off with <span class="ui">Info points</span> on the <a href="#tab-visitors">Visitors</a> tab.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-rooms.png" alt="Rooms tab" loading="lazy"><figcaption>Rooms tab: two waypoints and a baked ground-floor plan.</figcaption></figure>
+      <figure><img src="images/tab-rooms-areas.png" alt="Floor plans with their areas and the Units, Show room areas and Show totals settings" loading="lazy"><figcaption>Floor plans with their measured areas, and the room area settings.</figcaption></figure>
+      <figure><img src="images/tab-rooms-dollhouse.png" alt="Dollhouse section of the Rooms tab: each storey with how many actors its cut hides, Ceiling band, Preview cut, Always hide and Never hide" loading="lazy"><figcaption>Dollhouse: the ground floor previewed (End preview), with its ceiling band and lists.</figcaption></figure>
+      <figure><img src="images/tab-rooms-info.png" alt="Info points section of the Rooms tab" loading="lazy"><figcaption>Info points: each point with what its card holds, and Add info point.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Visitors ---------------------------------------------------------------------------------- -->
+<section id="tab-devices">
+  <div class="eyebrow">Tab 10 · Build the environment</div>
+  <h2>Devices</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Things visitors switch on and off while they explore: a radio or speaker playing music, a ceiling fan. A round glass play icon floats above each one when visitors are near.</p>
+      <h3>Add a device</h3>
+      <p>Select the object in the viewport (your own radio, speaker or fan model works), then press <span class="ui">Music player</span> or <span class="ui">Fan</span>. It gets an <span class="ui">ArchViz Device</span> component and appears in the list below. Press <span class="ui">Edit</span> on its row to set it up:</p>
+      <ul>
+        <li><span class="ui">Name</span>: shown next to the icon on hover (e.g. Radio).</li>
+        <li><span class="ui">On at the start</span>: plays from the moment the visit opens; otherwise visitors switch it on.</li>
+        <li><span class="ui">Choose audio files...</span>: MP3, WAV, OGG or FLAC files from your computer, imported into <span class="ui">/Game/ArchVizExperience/Audio</span>. Choose several for a playlist: they play in turn, in the order chosen (the first is <span class="ui">Sound</span>, the rest <span class="ui">More tracks</span>). The play and mute buttons next to it let you listen in the editor. Or pick any Sound Wave or Sound Cue in <span class="ui">Sound</span>.</li>
+        <li><span class="ui">Volume</span>; <span class="ui">Loop</span> starts the playlist again after the last track.</li>
+        <li><span class="ui">Carries</span>: how far it can be heard (silent beyond it).</li>
+        <li><span class="ui">Walls muffle it</span>: how much walls and doors soften it.</li>
+        <li><span class="ui">Spinning parts</span>: select the parts that turn (fan blades, film spools; separate actors placed on the device), then press <span class="ui">Use selected</span>. Set their <span class="ui">Speed</span> (turns per minute), axis and how long they take to spin up and coast down.</li>
+        <li><span class="ui">Icon height</span> above the object and the <span class="ui">Show distance</span> within which the icon appears. A device fixed to the ceiling (something solid right above it) shows its icon hanging underneath instead.</li>
+      </ul>
+      <h3>Ceiling fans</h3>
+      <p>Place the fan body and its blades as two actors with their pivots on the axle (blades attached to the body), make the body a <span class="ui">Fan</span> and add the blades as its <span class="ui">Spinning parts</span> (axis Z). For the fan's lamp, put a point light just under the light kit and tag it <span class="ui">ArchVizInterior</span> so it follows the interior dimmer. To make the glass glow with it, use <span class="ui">M_ArchViz_SurfaceTextured</span> for the fan: turn on <span class="ui">UseLightMask</span>, set <span class="ui">LightMaskMap</span> (white where it glows) and <span class="ui">GlowStrength</span>; the glow follows the dimmer level and colour.</p>
+      <p>In the demo level a ceiling fan with a light hangs in the first-floor bedroom.</p>
+      <h3>Projectors and TVs</h3>
+      <p>Select the projector (or TV) and press <span class="ui">Projector / TV</span>. Then:</p>
+      <ul>
+        <li><span class="ui">Choose video file...</span>: an MP4 (or MOV, AVI, WMV) from your computer, copied into the project (<span class="ui">Content/Movies</span>) so it is packaged.</li>
+        <li><span class="ui">Set screen where the viewport looks</span>: look at the clear wall in the viewport and press it; the picture goes there, facing out of the wall.</li>
+        <li><span class="ui">Picture width</span> (on the wall; the height follows the video's own shape, read when it opens), <span class="ui">Turn picture</span> (for footage filmed sideways: 90 degrees makes a landscape video a portrait picture) and <span class="ui">Brightness</span> in ANSI lumens, like a real projector (home projectors are 1,500 to 3,500).</li>
+        <li>Its sound plays from the projector with the same distance and wall settings as music.</li>
+      </ul>
+      <p>The projection is built like the real thing: the picture on the wall, a MegaLights spot light from the lens squared off to the picture, and a textured MegaLights rect light fed by the video, so the film's colours light the room around it. Turn on <span class="ui">MegaLights</span> on the <a href="#tab-look">Look</a> tab (Lumen, Ray tracing) for the beam and screen light to use it; it needs hardware ray tracing.</p>
+      <p>In the demo level the projector stands on the ottoman in the first-floor living area and shows a film on the wall above the sofa; its reels turn while it plays.</p>
+      <h3>Spatial sound</h3>
+      <p>Music comes from the device itself: louder as visitors walk up to it, quieter with distance, softer and duller from other rooms and through walls, and panned left and right as they turn. Mono audio files place the sound most precisely. Add Audio Volumes with reverb to the level for room acoustics; devices send to them.</p>
+      <p>In the demo level the radio on the living-room sideboard plays a two-track jazz playlist.</p>
+    </div>
+  </div>
+</section>
+
+<section id="tab-visitors">
+  <div class="eyebrow">Tab 11 · Visitor experience</div>
+  <h2>Visitors</h2>
+  <div class="split">
+    <div>
+      <p class="lead">How the visit opens, which modes visitors get in the dock, and how walking and looking feel.</p>
+      <h3>Start mode</h3>
+      <p>The mode the visit opens in. <span class="ui">Walkthrough</span> (Explore) is the usual choice; a showroom kiosk might open on the Gallery.</p>
+      <h3>Modes</h3>
+      <p>Switch each dock button on or off: <span class="ui">Lighting</span>, <span class="ui">Sun study</span> (in the Lighting drawer) with <span class="ui">Sun hours on room labels</span> and the <span class="ui">Sun path arc (Orbit)</span>, <span class="ui">Materials</span>, <span class="ui">Floor plan</span>, <span class="ui">Camera</span>, <span class="ui">Gallery</span>, <span class="ui">Orbit view (exterior)</span>, <span class="ui">Dollhouse</span> (Orbit's Cut open row), <span class="ui">Tape measure</span>, <span class="ui">Info points</span> (the “i” markers) and the <span class="ui">Quit button</span>. Turn Quit off for kiosks where visitors shouldn't close the app.</p>
+      <h3>Controls</h3>
+      <p><span class="ui">Input mode</span> (Desktop, Touch or Gamepad) and <span class="ui">Switch to the device in use</span>: with it on (the default), the controls, cursor and hints follow whatever the visitor actually uses, so a kiosk with a touchscreen and a controller just works. Then <span class="ui">Walk speed</span> in metres per second, <span class="ui">Look sensitivity</span>, and <span class="ui">Orbit transition</span>: how many seconds Orbit view takes to glide from one orbit point to the next (2.5 s by default). Orbit points can set their own. <span class="ui">Show the controls on the first visit</span> (on by default) opens the <a href="#controls-card">Controls</a> card once, the first time someone visits on that computer.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-visitors.png" alt="Visitors tab" loading="lazy"><figcaption>Visitors tab: start mode, dock modes and controls.</figcaption></figure>
+      <figure><img src="images/tab-visitors-2.png" alt="Modes: Lighting, Sun study, Sun hours on room labels, Sun path arc (Orbit), Materials and Floor plan switches" loading="lazy"><figcaption>Modes: the sun study and its sun hours and sun path switches sit under Lighting.</figcaption></figure>
+      <figure><img src="images/tab-visitors-3.png" alt="Controls: walk speed, look sensitivity and orbit transition" loading="lazy"><figcaption>Controls: input mode, switching to the device in use, walking, looking and the orbit transition.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Camera ------------------------------------------------------------------------------------ -->
+<section id="tab-camera">
+  <div class="eyebrow">Tab 12 · Visitor experience</div>
+  <h2>Camera</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Camera mode for visitors: the lenses they can fit, how it starts, and where photos and videos are saved.</p>
+      <h3>Lens presets</h3>
+      <p>Grouped by brand (Apple, Canon, Sony, Nikon, Fujifilm); open a brand to see its lenses. The pin makes a lens the one visitors start with. <span class="ui">Add lens</span> adds any <span class="ui">ArchViz Camera Preset</span> asset (sensor, focal length, aperture range).</p>
+      <h3>Framing &amp; handling</h3>
+      <p>The focal-length slider range (4 to 180 mm by default), the framing Camera mode opens with (16:9 and others), whether autofocus and the grid start on, the <span class="ui">Handheld intensity</span> (breathing, hand tremor and walking bob; 0 = a locked-off camera) and the starting <span class="ui">Stabilisation</span> (0 = raw handheld, 0.5 = lens stabilisation, 1 = gimbal), which visitors can change.</p>
+      <h3>Video recording</h3>
+      <p>The record button saves H.264 MP4 video. Set the resolution (1080p by default; the framing sets the shape), the frame rate (24 to 60, default 30) and the bitrate (0 = automatic: about 12 Mbps at 1080p30, 50 Mbps at 4K30).</p>
+      <h3>Output folder</h3>
+      <p>Files are saved, in this order of preference, to: the folder a visitor picked with the Folder button in Camera mode (remembered on that PC), the Experience's <span class="ui">Output Folder</span>, or <span class="ui">Videos/&lt;project name&gt;</span>. <span class="ui">Open folder</span>, <span class="ui">Change…</span>, <span class="ui">Use default</span> and <span class="ui">Forget picked</span> manage it.</p>
+      <h3>Stills · Movie Render Queue</h3>
+      <p>The camera button in Camera mode renders the current shot with Movie Render Queue using the stills preset. <span class="ui">Create stills preset</span> makes one with high-quality defaults (3840 × 2160 PNG, 8 anti-aliasing samples, warm-up frames); <span class="ui">Edit stills preset</span> opens it in the Movie Render Queue editor (format, resolution, anti-aliasing, path tracer, console variables). The resolution sets the short side; the framing sets the shape.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-camera.png" alt="Camera tab" loading="lazy"><figcaption>Camera tab: lens presets by brand.</figcaption></figure>
+      <figure><img src="images/tab-camera-2.png" alt="Framing &amp; handling: default lens and framing, focal range, handheld feel and stabilisation." loading="lazy"><figcaption>Framing &amp; handling: default lens and framing, focal range, handheld feel and stabilisation.</figcaption></figure>
+      <figure><img src="images/tab-camera-3.png" alt="Video recording and Output folder." loading="lazy"><figcaption>Video recording and Output folder.</figcaption></figure>
+      <figure><img src="images/tab-camera-4.png" alt="Stills: the Movie Render Queue preset used by the camera button." loading="lazy"><figcaption>Stills: the Movie Render Queue preset used by the camera button.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery ----------------------------------------------------------------------------------- -->
+<section id="tab-gallery">
+  <div class="eyebrow">Tab 13 · Visitor experience</div>
+  <h2>Gallery</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Marketing images, rendered videos and Sequencer cinematics visitors can browse in Gallery mode.</p>
+      <h3>Gallery items</h3>
+      <p>Click an item to edit its type, title, caption and media; the arrows reorder it. Titles default to the asset names.</p>
+      <h3>Add from Content Browser</h3>
+      <ul>
+        <li><span class="ui">Add selected</span>: adds the textures (images), media sources (MP4) and level sequences (cinematics) selected in the Content Browser, all in one go.</li>
+        <li><span class="ui">Video file…</span>: pick a rendered MP4 (or MOV, AVI, WMV) on disk. It's copied into <span class="ui">Content/Movies</span> so packaged builds include it, a media source is made for it, and it's added to the gallery.</li>
+      </ul>
+      <div class="callout tip"><span class="label">Cinematics</span><p>Level sequences play live in the level with their own camera cuts, so they always show the current lighting and finishes.</p></div>
+    </div>
+    <figure><img src="images/tab-gallery.png" alt="Gallery tab" loading="lazy"><figcaption>Gallery tab with two images and a video.</figcaption></figure>
+  </div>
+</section>
+
+<!-- Theme ------------------------------------------------------------------------------------- -->
+<section id="tab-theme">
+  <div class="eyebrow">Tab 14 · Visitor experience</div>
+  <h2>Theme</h2>
+  <div class="split">
+    <div>
+      <p class="lead">How the visitor interface looks: project name and logo, colours, glass, motion and floor-plan colours.</p>
+      <h3>Brand</h3>
+      <p><span class="ui">Project name</span> (top left of the interface), <span class="ui">Logo</span> (a PNG texture with alpha) and <span class="ui">Font family</span> (a font asset used for all interface text).</p>
+      <h3>Colors</h3>
+      <p><span class="ui">Accent color</span> for highlights and active states, <span class="ui">Glass tint</span> (the panel fill behind the blur) and <span class="ui">Border color</span> for panel and button outlines.</p>
+      <h3>Glass &amp; shape</h3>
+      <p><span class="ui">Tint opacity</span>, <span class="ui">Border opacity</span>, <span class="ui">Corner radius</span> and <span class="ui">Blur</span>.</p>
+      <h3>Motion</h3>
+      <p><span class="ui">Motion speed</span> for drawer and highlight animations, and <span class="ui">Reduce motion</span>, which cuts instead of animating.</p>
+      <h3>Floor plan colors</h3>
+      <p>The colours baked into floor plans for walls, furniture and floor (a checker means transparent). Re-bake the plans on the Rooms tab after changing them.</p>
+    </div>
+    <div class="shots">
+      <figure><img src="images/tab-theme.png" alt="Theme tab" loading="lazy"><figcaption>Theme tab: brand, colours and glass.</figcaption></figure>
+      <figure><img src="images/tab-theme-2.png" alt="Glass &amp; shape and Motion." loading="lazy"><figcaption>Glass &amp; shape and Motion.</figcaption></figure>
+      <figure><img src="images/tab-theme-3.png" alt="Floor plan colours (checker = transparent)." loading="lazy"><figcaption>Floor plan colours (checker = transparent).</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Start-up ---------------------------------------------------------------------------------- -->
+<section id="tab-startup">
+  <div class="eyebrow">Tab 15 · Visitor experience</div>
+  <h2>Start-up</h2>
+  <div class="split">
+    <div>
+      <p class="lead">What visitors see before and after a visit: splash screen, intro video, a menu to choose the development and its décor style, and an end screen with your agent's contact. These settings are shared by the whole project (every level), not stored in one level.</p>
+      <h3>Splash screen</h3>
+      <p><span class="ui">Logo</span> (a PNG texture with alpha), <span class="ui">Title</span> (shown under the logo, or alone without one) and how long it stays (<span class="ui">Duration</span>; 0 skips it). <span class="ui">ArchViz Experience logo</span>: Off, as the main logo, or small at the bottom under yours. Any key, click or tap skips it.</p>
+      <h3>Intro video</h3>
+      <p><span class="ui">Video file…</span> picks an MP4 that plays after the splash, letterboxed on black. It's copied into Content/Movies so packaged builds include it. With <span class="ui">Skippable</span> on, a Skip button, any key or a tap goes straight to the menu.</p>
+      <h3>Sites</h3>
+      <p>Each site is a card in the menu: <span class="ui">Name</span>, <span class="ui">Description</span> (address, number of homes…), <span class="ui">Image</span> (also the menu background while the card is in focus) and the <span class="ui">Level</span> visitors walk through. Add, reorder and remove sites; expand one to edit it.</p>
+      <p><span class="ui">Styles</span> lists the décor styles visitors can choose for that site. Save styles on the <a href="#tab-materials">Materials</a> tab (<span class="ui">Save current look as style</span>), then press <span class="ui">Add this level's styles</span>. With two or more styles the menu asks “Choose a style”; with one, the visit opens in it straight away.</p>
+      <h3>Front end</h3>
+      <p><span class="ui">Create front-end level</span> makes the menu level and sets it as the project's start level, so packaged builds open on the splash and menu. <span class="ui">Open front-end level</span> opens it; press Play there to try the whole flow.</p>
+      <p><span class="ui">Return to menu when idle</span> is for kiosks: after this many seconds without any input, a visit goes back to the menu (0 = never). It waits while a video is recording. The end screen and the style choice also go back to the site menu after the same time.</p>
+      <h3>Agent contact</h3>
+      <p><span class="ui">Name</span>, <span class="ui">Phone</span> and <span class="ui">Email</span> shown on the end screen. Fill in at least one to turn the end screen on; empty lines are left out.</p>
+    </div>
+    <figure><img src="images/tab-startup.png" alt="Start-up tab" loading="lazy"><figcaption>Start-up tab: splash, intro video, sites, front end and agent contact.</figcaption></figure>
+  </div>
+
+  <h3>How the flow works</h3>
+  <ol class="steps">
+    <li><strong>Splash</strong>, then the <strong>intro video</strong> (each only if set).</li>
+    <li><strong>Choose a development</strong>: the site cards. Mouse, touch, arrow keys or the D-pad move between them; click, tap, <kbd>Enter</kbd> or A opens one.</li>
+    <li><strong>Choose a style</strong>, when the site has more than one. <span class="ui">Back</span>, <kbd>Esc</kbd>, <kbd>Backspace</kbd> or B returns to the sites.</li>
+    <li><strong>The visit</strong> opens in the chosen style. Its Quit card offers <span class="ui">No</span>, <span class="ui">Main menu</span> (straight back to the menu, without the splash or intro) and <span class="ui">Yes, quit</span>.</li>
+    <li><strong>End screen</strong>: <span class="ui">Yes, quit</span> (or Quit in the menu) shows “Thank you for visiting” with the site and your agent's contact, <span class="ui">My selections</span> (the finishes chosen in the visit, with Save) and <span class="ui">Back to menu</span> or <span class="ui">Exit</span>. <kbd>Esc</kbd> or B goes back to the menu. Without agent contact, Quit closes the app straight away.</li>
+  </ol>
+  <figure class="wide"><img src="images/visitor-menu.jpg" alt="Front-end menu: Choose a development, with a site card over the site picture" loading="lazy"><figcaption>The front end's menu: one card per site, the focused site's picture behind.</figcaption></figure>
+  <figure class="wide"><img src="images/visitor-end.jpg" alt="End screen: Thank you for visiting, the site name, agent contact and Back to menu / Exit" loading="lazy"><figcaption>The end screen with the agent's contact.</figcaption></figure>
+  <div class="callout tip"><span class="label">Trying it in the editor</span><p>Open the front-end level and press Play. From a visit, type <span class="cmd">open FrontEnd?End=Main</span> in the Cmd box to jump to the end screen (use your level's name after End=), or <span class="cmd">open FrontEnd?Menu</span> for the menu.</p></div>
+</section>
+
+<!-- Checks ------------------------------------------------------------------------------------ -->
+<section id="tab-checks">
+  <div class="eyebrow">Tab 16 · Before you package</div>
+  <h2>Checks</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Problems that would stop the experience working, with a fix for each. Aim for none before you package.</p>
+      <p>Checks re-run whenever the level changes. Colours show how serious each one is:</p>
+      <ul>
+        <li><span class="sev e"></span><strong>Red</strong>: broken, for example no Experience in the level, or Play not using ArchViz Game Mode.</li>
+        <li><span class="sev w"></span><strong>Orange</strong>: likely wrong, for example a Static interior light, waypoints sharing a Room Id, or a second sun.</li>
+        <li><span class="sev i"></span><strong>Blue</strong>: worth knowing, for example Orbit framing the whole site because there are no orbit points.</li>
+      </ul>
+      <p>Package checks: a style offered for this level but saved from another one, and a style listing surfaces that are no longer in the level (<span class="ui">Remove missing</span>).</p>
+      <p>Dollhouse checks: the dollhouse is on but there are no floor-plan volumes, a storey whose cut hides nothing (is the top of its box just under the next floor?), an actor on both of a storey's lists, and lists naming deleted actors (<span class="ui">Remove missing</span>).</p>
+      <p>Sun study checks: the sun study is on but the Lighting drawer is off (<span class="ui">Turn Lighting on</span>), the sun path is on but Orbit is off (<span class="ui">Turn Orbit on</span>), sun hours without any room waypoints, an HDRI sky (its sun doesn't follow the date), and the site still being the default city.</p>
+      <p>Options checks: a group with fewer than two options, a ticked option that doesn't exist (<span class="ui">Start on the first</span>), an option without a name, an actor in two options of the same group, and options pointing at deleted actors (<span class="ui">Remove missing</span>).</p>
+      <p>The start-up checks (front end, sites, end screen) cover the whole project and show in every level, including the front-end level itself: a missing front-end level, packaged builds not starting on the front end (<span class="ui">Start on front end</span> fixes it), a site without a level or picture, styles that no longer exist, and no agent contact.</p>
+      <p>Most checks have a fix button (<span class="ui">Use ArchViz</span>, <span class="ui">Make Movable</span>, <span class="ui">Delete</span>, <span class="ui">Fix limits</span>, <span class="ui">Add floor plan</span>...). Every fix can be undone with <kbd>Ctrl</kbd> + <kbd>Z</kbd>.</p>
+      <p>See <a href="#troubleshooting">Troubleshooting</a> for the full list.</p>
+    </div>
+    <figure><img src="images/tab-checks.png" alt="Checks tab" loading="lazy"><figcaption>Checks tab with one informational note.</figcaption></figure>
+  </div>
+</section>
+
+<!-- In the experience ------------------------------------------------------------------------- -->
+<section id="visit">
+  <div class="eyebrow">In the experience</div>
+  <h2>What visitors can do</h2>
+  <p class="lead">Visitors get a glass interface: the project name at the top left and a dock at the bottom. Clicking the active mode again returns to Explore.</p>
+  <figure class="wide"><img src="images/visitor-explore.jpg" alt="The visitor view: project name top left, waypoint markers in the rooms and the dock at the bottom" loading="lazy"><figcaption>Explore: walk freely; the round markers are waypoints.</figcaption></figure>
+
+  <h3>Explore</h3>
+  <p>First-person walking at standing eye height. Click a waypoint marker to move to that room.</p>
+  <p><strong>Devices.</strong> A round play icon floats above a radio, speaker or fan when you are near it: click or tap it (gamepad: aim at it and press A) to switch it on; it shows pause while it plays. Music gets quieter as you walk away and is muffled from other rooms.</p>
+
+  <h3>Info points</h3>
+  <p>Round “i” markers on things worth knowing about; hovering shows the title. Click or tap one (gamepad: aim the centre point at it and press A) to open its card: pictures (arrows, <kbd>←</kbd> <kbd>→</kbd> or the D-pad), the title and text, and a link button when there is one. <span class="ui">Close</span>, <kbd>Esc</kbd>, B or a click beside the card closes it.</p>
+  <figure class="wide"><img src="images/visitor-info.jpg" alt="Info card with a picture, title, text, Spec sheet and Close buttons" loading="lazy"><figcaption>An info card: pictures with a counter, title, text and a link button.</figcaption></figure>
+
+  <h3>Orbit</h3>
+  <p>The view flies out and circles the building or the chosen orbit point, always looking at it and kept clear of walls and the ground. The bar at the top switches between orbit points (the view glides smoothly from one to the next, rising over the building on the way) and has <span class="ui">Back inside</span>, which flies back to where the visitor was standing. Left alone for a few seconds, the view turns slowly like a turntable (if the point allows it). Camera mode works in Orbit too.</p>
+  <figure class="wide"><img src="images/visitor-orbit.jpg" alt="Orbit view of the building from outside, with the orbit bar at the top" loading="lazy"><figcaption>Orbit: the orbit bar (point name, Back inside) and a short controls hint.</figcaption></figure>
+  <p><strong>Cut open</strong> (the dollhouse): the row under the orbit bar has <span class="ui">Off</span> and a button per storey. Choosing a storey hides everything above it and its ceilings, and the view glides to look down into its rooms from a high angle (turning, zooming and the turntable keep working; the orbit points hide meanwhile). Each room has a label such as “Kitchen · 60.9 m²”: click or tap it and the view flies down into that room, back in Explore. <span class="ui">Off</span> glides back to the orbit point with the building whole; <span class="ui">Back inside</span> also puts it back. With a gamepad, the D-pad steps through the storeys and A on a room label goes there.</p>
+  <figure class="wide"><img src="images/visitor-dollhouse.jpg" alt="Dollhouse view: the ground floor cut open from above with Living Room and Kitchen labels, the orbit bar showing Ground Floor and the Cut open row" loading="lazy"><figcaption>Cut open: the ground floor from above, with clickable room labels.</figcaption></figure>
+  <p><strong>Sun path</strong>: with the sun study on, Orbit shows the sun's path over the building for the chosen date: an arc from sunrise to sunset with a dot every hour (labelled every three), a ring on the ground with north marked, and the sun now with a line down to the building. <span class="ui">Sun path</span> on the orbit bar shows or hides it (it's on, highlighted, by default). It hides while a storey is cut open.</p>
+  <figure class="wide"><img src="images/visitor-sunpath.jpg" alt="Orbit view of the building with the sun's path arcing over it, hour labels, the ground ring with N and the Sun path button on the orbit bar" loading="lazy"><figcaption>Sun path in Orbit on 21 June: the arc, hours and the sun now.</figcaption></figure>
+
+  <h3>Lighting</h3>
+  <p>A drawer with the moods as tiles, a time-of-day slider with sunrise and sunset, the interior light level and warmth, the weather buttons (Clear, Partly cloudy, Overcast), and under <span class="ui">Rain &amp; snow</span> the Dry, Rain and Snow buttons plus <span class="ui">Sound on</span> / <span class="ui">Sound off</span> to mute the ambience. Tapping a mood sweeps the time smoothly to it.</p>
+  <figure><img src="images/visitor-rain-snow-drawer.jpg" alt="Lighting drawer with the Rain and snow row: Dry, Rain (selected), Snow and Sound on" loading="lazy"><figcaption>The Rain &amp; snow row in the Lighting drawer, with the sound switch.</figcaption></figure>
+  <figure class="wide"><img src="images/visitor-lighting.jpg" alt="Lighting drawer with time of day, interior lights, warmth, mood presets and weather" loading="lazy"><figcaption>Lighting: time of day with sunrise and sunset, interior lights and warmth, moods and weather.</figcaption></figure>
+  <p><strong>Sun study</strong> (at the end of the drawer): pick a date, <span class="ui">21 Mar</span>, <span class="ui">21 Jun</span>, <span class="ui">21 Sep</span>, <span class="ui">21 Dec</span> (equinoxes and solstices) or <span class="ui">Today</span>, and the sun moves to where it is on that day at the same time. <span class="ui">Play the day</span> runs from sunrise to sunset in about 20 seconds, the shadows sweeping through the rooms; <span class="ui">Pause</span> stops it and Play carries on from there. Moving the time slider or tapping a mood stops it too. A compass plots the day's path across the sky with the sun now and the way the visitor is facing, under the day length (“Daylight 16 h 38 min”) and where the sun is (“Sun 52° up, S”). With Reduce motion, Play steps an hour at a time.</p>
+  <p>Room labels on the floor plan and in the dollhouse add the hours of direct sun each room gets on the chosen date, e.g. “Kitchen · 18.4 m² · 5.5 h sun” (or “no direct sun”). They're measured from each room's waypoint across the room, every quarter of an hour, a few seconds after the visit starts and again when the date changes.</p>
+  <figure class="wide"><img src="images/visitor-sunstudy.jpg" alt="Lighting drawer's Sun study block: date buttons with 21 Jun chosen, Play the day, the compass with the sun's path, daylight and sun position" loading="lazy"><figcaption>Sun study: 21 June chosen, the compass, daylight and sun position.</figcaption></figure>
+  <p>At night the sky shows the real stars for the site and date (see <a href="#night-sky">Night sky</a>), best seen outside looking up.</p>
+  <figure class="wide"><img src="images/visitor-nightsky.jpg" alt="Night view looking up at stars and the Milky Way" loading="lazy"><figcaption>The night sky on 21 December at 23:00: the Milky Way where it really is.</figcaption></figure>
+
+  <h3>Materials</h3>
+  <p>At the top of the drawer, <strong>Packages</strong> shows the site's décor styles: tap one to restyle every room at once (finishes and furniture). The active package has an accent ring; a style chosen in the front-end menu is already active. Then click a customisable surface: it's outlined and the drawer shows its finishes. Click a swatch to apply it. After changing a surface the package reads “…, customised” with <span class="ui">Reset to package</span>, which puts every surface back.</p>
+  <figure class="wide"><img src="images/visitor-packages.jpg" alt="Materials drawer with the Packages row: Dark and Natural, Natural active" loading="lazy"><figcaption>Packages in the Materials drawer: one tap restyles the whole home.</figcaption></figure>
+  <p>Under the packages, <strong>Options</strong> has a row of buttons for each <a href="#options">options group</a>, e.g. <em>Furniture</em>: Furnished | Unfurnished. The chosen option has an accent ring. Tapping another fades the view to black for a moment, swaps the furniture or layout, and fades back (a straight cut with Reduce motion). If the active package saved a different option, it reads “…, customised” and <span class="ui">Reset to package</span> puts the package's options back too.</p>
+  <figure class="wide"><img src="images/visitor-options.jpg" alt="Materials drawer with Packages (Natural active) and Options: Furniture with Furnished and Unfurnished, Unfurnished chosen; the room is empty" loading="lazy"><figcaption>Options in the Materials drawer: Unfurnished chosen, so the furniture is gone.</figcaption></figure>
+  <p><span class="ui">My selections</span> (bottom of the drawer) lists the package, the finish on every surface and the chosen option in each group (e.g. Furniture: Unfurnished), and the agent's contact. <span class="ui">Save</span> writes a picture (PNG) and a web page (HTML, with a thumbnail per finish) to the output folder (the Camera mode folder); <span class="ui">Show in folder</span> opens it. The same list is offered on the front end's end screen after a visit.</p>
+  <figure class="wide"><img src="images/visitor-selections.jpg" alt="My selections card: Riverside House, package Natural, four surfaces with their finishes, Furniture: Unfurnished, agent contact, Save and Close" loading="lazy"><figcaption>My selections in the visit.</figcaption></figure>
+  <figure><img src="images/selections-export.png" alt="The saved selections picture: white page with the site, package, date, each surface and finish with thumbnails, the furniture option, and the agent contact" loading="lazy"><figcaption>The saved picture (the web page has the same content).</figcaption></figure>
+  <figure class="wide"><img src="images/visitor-materials.jpg" alt="Materials mode with customisable surfaces outlined and the drawer asking to click a surface" loading="lazy"><figcaption>Materials: customisable surfaces are outlined; click one to open its finishes.</figcaption></figure>
+
+  <h3>Floor plan</h3>
+  <p>The plan of the current storey, showing where the visitor is: a dot with a soft cone pointing the way they face. <span class="ui">Floor Plan</span> works as a switch while exploring: press it and the plan stays on screen as the visitor walks around (the button's label lights up), press it again to close it. Opening any other mode or Orbit closes it, and so does <kbd>Esc</kbd> / B; pressing Floor Plan from another mode returns to Explore with the plan open.</p>
+  <p>Each room's label shows its name, with its area (and hours of sun, when the sun study is on) on a smaller line underneath; labels near the edge shift to stay inside the plan. Under the title is the storey's floor area and the whole home's. Click a room to move there (the plan stays open); switch storeys with the arrows, and the plan follows the visitor up and down the stairs.</p>
+  <figure class="wide"><img src="images/visitor-floorplan.jpg" alt="Exploring with the floor plan open: plan bottom-left with room labels, the visitor's dot and facing cone, Floor Plan lit in the dock" loading="lazy"><figcaption>Exploring with the floor plan open: the dot and cone show where the visitor stands and faces.</figcaption></figure>
+
+  <h3>Measure</h3>
+  <p>A tape measure. Click two points on any surface (tap, tap; gamepad: aim and press A twice) to draw a line with its length, in metres or feet and inches (Units on the Rooms tab). While placing the second point a dashed line follows the cursor with the live length. Points snap to <strong>edges</strong> and <strong>corners</strong> (where walls, floors and worktops meet), to earlier end points, and the second point to <strong>vertical</strong> or <strong>level</strong> when close; a small label shows what it snapped to. Measurements stay on screen: <span class="ui">Undo</span> removes the last one, <span class="ui">Clear</span> removes all, <span class="ui">Done</span> returns to Explore. <kbd>Esc</kbd> / B first cancels a half-placed point.</p>
+  <figure class="wide"><img src="images/visitor-measure.jpg" alt="Measure mode with two measurements, 8.65 m across the room and 3.54 m at the doorway, and the measure bar above the dock" loading="lazy"><figcaption>Measure: lengths in pills on each line, and the bar with Undo, Clear and Done.</figcaption></figure>
+
+  <h3>Camera</h3>
+  <p>A full-screen camera: pick a lens from the drawer, set the focal length on the left slider (4 to 180 mm), switch autofocus or manual focus, change aperture and exposure, show a grid, choose the framing, then take a still or record a video. <kbd>H</kbd> hides the controls for a clean view; <kbd>R</kbd> starts and stops recording. The Folder button chooses where files are saved and <span class="ui">Show in folder</span> opens it after a save.</p>
+  <figure class="wide"><img src="images/visitor-camera.jpg" alt="Camera mode with lens readout, focal slider on the left and camera bar bottom right" loading="lazy"><figcaption>Camera: lens and settings at the top, focal length on the left, the camera bar with still and record buttons bottom right.</figcaption></figure>
+
+  <h3>Gallery</h3>
+  <p>Browse images, videos and cinematics one by one or as a grid, with titles and captions. Videos have play, pause and a scrub bar. Full screen hides the dock, and the controls fade when the mouse rests.</p>
+  <figure class="wide"><img src="images/visitor-gallery.jpg" alt="Gallery viewer showing a still with title, counter and Grid and Full screen buttons" loading="lazy"><figcaption>Gallery: the viewer, with arrows, title, counter, Grid and Full screen.</figcaption></figure>
+  <figure class="wide"><img src="images/visitor-gallery-grid.jpg" alt="Gallery grid of images and a video" loading="lazy"><figcaption>Gallery grid: images, videos (marked VIDEO) and cinematics.</figcaption></figure>
+
+  <h3>Quit</h3>
+  <p>Asks “Quit the experience?” with No and Yes. <kbd>Esc</kbd> means No. With a <a href="#tab-startup">front end</a> it asks “Leave the visit?” and adds <span class="ui">Main menu</span>; <span class="ui">Yes, quit</span> then shows the end screen with your agent's contact.</p>
+  <figure class="wide"><img src="images/visitor-quit.jpg" alt="Quit the experience? confirmation with No and Yes, quit" loading="lazy"><figcaption>The quit confirmation.</figcaption></figure>
+
+  <h3 id="controls-card">Controls (?)</h3>
+  <p>The <span class="ui">?</span> button at the end of the dock opens the Controls card: a picture of the keyboard and mouse, a touchscreen or a gamepad with the controls the experience uses lit in your accent colour and numbered, and what each one does. Tabs switch between the three; it opens on the device the visitor is using. It also opens by itself on the first visit on a computer (switch on the <a href="#tab-visitors">Visitors</a> tab). <span class="ui">Got it</span>, <kbd>Esc</kbd> or B closes it.</p>
+  <figure class="wide"><img src="images/visitor-controls.jpg" alt="Controls card: keyboard and mouse picture with the used keys lit and numbered, legend on the right, tabs for Keyboard and mouse, Touch and Gamepad, and Got it" loading="lazy"><figcaption>The Controls card, Keyboard &amp; mouse tab.</figcaption></figure>
+</section>
+
+<!-- Controls ---------------------------------------------------------------------------------- -->
+<section id="input">
+  <div class="eyebrow">In the experience</div>
+  <h2>Desktop, touch and gamepad</h2>
+  <p class="lead">The experience works with a mouse and keyboard, a touchscreen or a gamepad. Choose the main one at setup; with <span class="ui">Switch to the device in use</span> on, it follows whatever the visitor picks up. Visitors can see these controls any time with the dock's <a href="#controls-card"><span class="ui">?</span></a> button.</p>
+  <ul>
+    <li><strong>Desktop</strong>: a PC or laptop with a mouse. The mouse cursor is shown.</li>
+    <li><strong>Touch</strong>: Windows touchscreens and kiosks, and tablets (iPad, Android) through Unreal's Pixel Streaming, which streams the full-quality PC render to the tablet's browser and sends the touches back. A walking stick appears bottom-left; the dock, orbit bar and quit card get bigger for fingers.</li>
+    <li><strong>Gamepad</strong>: an Xbox or PlayStation style controller. A small aim point appears in the centre of the screen; drawers can be driven with the D-pad.</li>
+  </ul>
+  <figure class="wide"><img src="images/visitor-touch.jpg" alt="Touch mode: walking stick bottom-left and a larger dock" loading="lazy"><figcaption>Touch mode: the walking stick and the larger dock.</figcaption></figure>
+
+  <h3>Desktop</h3>
+  <table>
+    <thead><tr><th>Input</th><th>Explore</th><th>Orbit</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> / arrow keys</td><td>Walk</td><td><kbd>A</kbd> <kbd>D</kbd> turn around the point, <kbd>W</kbd> <kbd>S</kbd> closer / further</td></tr>
+      <tr><td>Right mouse button</td><td>Hold to look around</td><td>Drag to orbit</td></tr>
+      <tr><td>Middle mouse button</td><td></td><td>Drag to pan</td></tr>
+      <tr><td>Mouse wheel</td><td></td><td>Closer / further (in Camera mode: zoom the lens)</td></tr>
+      <tr><td>Left mouse button</td><td>Click markers, surfaces and buttons</td><td>Click buttons</td></tr>
+      <tr><td><kbd>O</kbd></td><td colspan="2">Toggle Orbit view</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td colspan="2">Back: closes the open card, drawer, mode or the floor plan</td></tr>
+      <tr><td><kbd>H</kbd></td><td colspan="2">Camera mode: clean view (hide the controls)</td></tr>
+      <tr><td><kbd>R</kbd></td><td colspan="2">Camera mode: start / stop recording</td></tr>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td colspan="2">Gallery: previous / next item</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Touch</h3>
+  <table>
+    <thead><tr><th>Gesture</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Walking stick (bottom-left)</td><td>Walk; in Orbit, turn around the point and move closer / further</td></tr>
+      <tr><td>Drag one finger</td><td>Look around (the scene moves with your finger); in Orbit, orbit</td></tr>
+      <tr><td>Tap</td><td>Markers, rooms on the floor plan and buttons; a surface in Materials mode; the focus point in Camera mode</td></tr>
+      <tr><td>Pinch</td><td>Camera mode: zoom the lens. Orbit: closer / further</td></tr>
+      <tr><td>Drag two fingers</td><td>Orbit: pan</td></tr>
+      <tr><td>Swipe left / right</td><td>Gallery: next / previous item</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Gamepad</h3>
+  <table>
+    <thead><tr><th>Button</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Left stick</td><td>Walk; in Orbit, turn around the point and move closer / further</td></tr>
+      <tr><td>Right stick</td><td>Look around; in Orbit, orbit</td></tr>
+      <tr><td>RT / LT</td><td>Camera mode: zoom the lens. Orbit: closer / further</td></tr>
+      <tr><td>A</td><td>Select what the centre aim point is on: the nearest waypoint marker, a surface in Materials mode, the focus point in Camera mode. In a drawer: press the highlighted control</td></tr>
+      <tr><td>B</td><td>Back: closes the open drawer or mode</td></tr>
+      <tr><td>LB / RB</td><td>Previous / next mode in the dock</td></tr>
+      <tr><td>D-pad</td><td>Move between the controls in a drawer; Gallery: previous / next item</td></tr>
+      <tr><td>Y</td><td>Toggle Orbit view</td></tr>
+      <tr><td>X</td><td>Camera mode: start / stop recording</td></tr>
+      <tr><td>View</td><td>Camera mode: clean view</td></tr>
+      <tr><td>Right stick press</td><td>Leave the drawer's controls and go back to aiming in the scene</td></tr>
+    </tbody>
+  </table>
+  <p>In Lighting and Materials (once a surface is picked), the drawer's first control is highlighted as it opens, ready for the D-pad and A. The quit card starts on <span class="ui">No</span>.</p>
+  <figure class="wide"><img src="images/visitor-gamepad.jpg" alt="Gamepad mode: centre aim point" loading="lazy"><figcaption>Gamepad mode: the centre aim point.</figcaption></figure>
+
+  <div class="callout tip"><span class="label">Testing without the device</span>
+    <p>In Play, type <span class="cmd">ArchViz.InputMode touch</span> or <span class="cmd">ArchViz.InputMode gamepad</span> in the console to switch modes (typing on the keyboard switches back to Desktop when <span class="ui">Switch to the device in use</span> is on). <span class="cmd">ArchViz.MouseAsTouch 1</span> makes the mouse act as one finger, so the stick, dragging and tapping can be tried on a desktop; pinch and two-finger gestures need a real touchscreen.</p>
+  </div>
+  <div class="callout note"><span class="label">In the editor</span><p>In Play-in-Editor, <kbd>Esc</kbd> also ends the play session, as usual in Unreal.</p></div>
+</section>
+
+<!-- Packaging --------------------------------------------------------------------------------- -->
+<section id="packaging">
+  <div class="eyebrow">Reference</div>
+  <h2>Packaging</h2>
+  <ol class="steps">
+    <li><strong>Run Checks</strong> and fix everything red and orange.</li>
+    <li><strong>Game mode.</strong> <span class="ui">Create experience in level</span> sets ArchViz Game Mode as the level's game mode (World Settings). To use it everywhere, set it in <span class="ui">Project Settings › Maps &amp; Modes › Default GameMode</span> instead.</li>
+    <li><strong>Maps to package.</strong> With a <a href="#tab-startup">front end</a>, the front-end level, every site's level, its styles and pictures and the intro video are packaged automatically. Without one, add your experience level to <span class="ui">Project Settings › Packaging › List of maps to include</span> (or make it the Game Default Map).</li>
+    <li><strong>Videos.</strong> Videos added with <span class="ui">Video file…</span> are copied into <span class="ui">Content/Movies</span>, which Unreal always packages. If you add media sources yourself, keep their files in Content/Movies too.</li>
+    <li><strong>Package</strong> with <span class="ui">Platforms › Windows › Package Project</span>. With the plugin installed in the engine this works in Blueprint-only projects too.</li>
+  </ol>
+  <div class="callout note"><span class="label">Photos and videos in packaged builds</span><p>Video recording (H.264 MP4) is built in for Windows. Stills render with Movie Render Queue, which the plugin enables; take a test still in your packaged build before handing it over.</p></div>
+</section>
+
+<!-- Console ----------------------------------------------------------------------------------- -->
+<section id="console">
+  <div class="eyebrow">Reference</div>
+  <h2>Console commands</h2>
+  <p>Type these in the console: <kbd>`</kbd> in a development build of the experience, or the editor's <span class="ui">Cmd</span> box during Play. Shipping builds have no console.</p>
+  <table>
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><span class="cmd">ArchViz.Orbit</span></td><td>Orbit view: <span class="ui">on</span>, <span class="ui">off</span>, <span class="ui">toggle</span>, <span class="ui">next</span>, <span class="ui">prev</span> or an orbit point index.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Dollhouse</span></td><td>Cut open: lists the storeys without arguments; <span class="ui">&lt;storey number or name&gt;</span> cuts it open (flying out to Orbit if needed), <span class="ui">off</span> closes it; <span class="ui">room</span> lists the open storey's rooms and <span class="ui">room &lt;name or number&gt;</span> flies into one.</td></tr>
+      <tr><td><span class="cmd">ArchViz.SunStudy</span></td><td>Sun study: logs the date and the sun without arguments; <span class="ui">mar</span>, <span class="ui">jun</span>, <span class="ui">sep</span>, <span class="ui">dec</span>, <span class="ui">today</span> or <span class="ui">&lt;month&gt; &lt;day&gt;</span> sets the date; <span class="ui">play [seconds]</span>, <span class="ui">stop</span>; <span class="ui">time &lt;hours&gt;</span>; <span class="ui">path on|off</span> shows or hides the Orbit sun path.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Weather</span></td><td>Weather: logs the sky, rain / snow and the surfaces without arguments; <span class="ui">clear</span>, <span class="ui">partly</span>, <span class="ui">overcast</span> set the sky; <span class="ui">rain [0..1]</span>, <span class="ui">snow [0..1]</span>, <span class="ui">none</span> set the precipitation and its intensity. Add <span class="ui">now</span> to skip the blend (surfaces jump to fully wet / snowed).</td></tr>
+      <tr><td><span class="cmd">ArchViz.Sound</span></td><td>Ambient sound: <span class="ui">mute</span>, <span class="ui">unmute</span>, <span class="ui">volume &lt;0..1&gt;</span>. Logs the level of each layer (day, night, wind, rain, rain indoors, room), how far indoors the visitor is and the room.</td></tr>
+      <tr><td><span class="cmd">ArchViz.SunHours</span></td><td>Logs each room's hours of direct sun on the chosen date; <span class="ui">refresh</span> measures them again.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Gallery</span></td><td>Gallery mode: <span class="ui">next</span>, <span class="ui">prev</span>, <span class="ui">grid</span>, <span class="ui">full</span> or an item index.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Record</span></td><td>Starts / stops Camera mode video recording (H.264 MP4).</td></tr>
+      <tr><td><span class="cmd">ArchViz.Still</span></td><td>Renders a still of the current Camera mode shot with Movie Render Queue.</td></tr>
+      <tr><td><span class="cmd">ArchViz.OpenOutputFolder</span></td><td>Opens the folder Camera mode saves to (and logs its path).</td></tr>
+      <tr><td><span class="cmd">ArchViz.InputMode</span></td><td>Switches the controls: <span class="ui">desktop</span>, <span class="ui">touch</span> or <span class="ui">gamepad</span> (logs the current mode without an argument).</td></tr>
+      <tr><td><span class="cmd">ArchViz.Mode</span></td><td>Switches mode like the dock: <span class="ui">walkthrough</span>, <span class="ui">lighting</span>, <span class="ui">materials</span>, <span class="ui">floorplan</span>, <span class="ui">measure</span>, <span class="ui">camera</span> or <span class="ui">gallery</span>; add <span class="ui">toggle</span> to press it like a dock button (Floor Plan opens / closes). Logs the active mode and whether the floor plan is open.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Controls</span></td><td>Opens the Controls card; <span class="ui">reset</span> makes it show again on the next visit, as on a first visit.</td></tr>
+      <tr><td><span class="cmd">ArchViz.MouseAsTouch</span></td><td>Testing: <span class="ui">1</span> = the mouse acts as one finger in the game view, <span class="ui">0</span> = normal. Not saved.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Info</span></td><td>Info points: lists them without an argument; <span class="ui">&lt;number&gt;</span> opens that point's card, <span class="ui">next</span> / <span class="ui">prev</span> switch its picture, <span class="ui">close</span> closes it.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Measure</span></td><td>Tape measure: <span class="ui">x1 y1 x2 y2</span> (fractions of the view, e.g. 0.3 0.5 0.7 0.5) adds a measurement between those two screen points; <span class="ui">undo</span> / <span class="ui">clear</span>.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Option</span></td><td>Layout / furniture options: lists the groups and options without arguments (* = chosen); <span class="ui">&lt;group&gt; &lt;option&gt;</span> (names or numbers, e.g. <span class="ui">Furniture Unfurnished</span>) chooses one.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Materials</span></td><td>Materials mode: lists the customisable surfaces and their finishes without arguments (* = applied); <span class="ui">&lt;surface&gt;</span> selects one, <span class="ui">&lt;surface&gt; &lt;finish&gt;</span> applies a finish (names or numbers, e.g. <span class="ui">Living Room Floor Walnut</span>), exactly as a click in the drawer. Handy for kiosk scripts and Pixel Streaming.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Device</span></td><td>Lists the devices (radios, fans) without arguments; <span class="ui">&lt;number&gt; [on|off|toggle]</span> switches one, exactly as the play icon does.</td></tr>
+      <tr><td><span class="cmd">ArchViz.MakeDevice</span></td><td>Editor: makes each selected actor a device, <span class="ui">music</span> or <span class="ui">fan</span> (the Devices tab buttons, for scripted set-up).</td></tr>
+      <tr><td><span class="cmd">ArchViz.GenerateSwatchThumbnails</span></td><td>Editor: renders a picture for every swatch that has none; optionally only under a content path, e.g. <span class="ui">/Game/MySwatches</span>.</td></tr>
+      <tr><td><span class="cmd">ArchViz.ApplyStyle</span></td><td>Applies a décor style by name, the same as tapping its package; lists the styles without an argument.</td></tr>
+      <tr><td><span class="cmd">ArchViz.Selections</span></td><td>Opens My selections; <span class="ui">save</span> writes its PNG and HTML to the output folder straight away (and logs the path).</td></tr>
+      <tr><td><span class="cmd">ArchViz.Quit</span></td><td>Opens the quit confirmation (same as the dock's Quit button).</td></tr>
+      <tr><td><span class="cmd">ArchViz.StreamLevel</span></td><td>Loads and shows (1) or unloads (0) a sub-level by part of its name; lists the streaming levels without arguments. Handy for testing level overrides.</td></tr>
+      <tr><td><span class="cmd">ArchViz.AddGalleryVideo</span></td><td>Editor: adds a video file to the gallery (copied into Content/Movies).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Troubleshooting --------------------------------------------------------------------------- -->
+<section id="troubleshooting">
+  <div class="eyebrow">Reference</div>
+  <h2>Troubleshooting</h2>
+  <p>Most problems show up on the Checks tab with a fix. The common ones are below. Anything else: email <a href="mailto:info@overbeckstudios.com">info@overbeckstudios.com</a> with your Unreal Engine version, what you did and what you expected.</p>
+  <table>
+    <thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
+    <tbody>
+      <tr><td>Rain falls inside the house</td><td>The roof map needs real geometry overhead: roofs or ceilings that render in the level (not hidden in game). Glass roofs count as roofs.</td></tr>
+      <tr><td>No puddles or snow on a surface</td><td>Its material doesn't include the weather function (see <a href="#weather-materials">Weather on materials</a>), the Weather switch is off on its instance, or it's under a roof. Puddles also need a flat, upward-facing surface.</td></tr>
+      <tr><td>No glass interface or dock in Play</td><td>Play isn't using ArchViz Game Mode. Checks › <span class="ui">Use ArchViz</span> sets it for the level.</td></tr>
+      <tr><td>The level is lit twice / too bright</td><td>A separate sun, sky light, fog or atmosphere actor is in the level. The Experience has its own: delete the extra (Checks › <span class="ui">Delete</span>).</td></tr>
+      <tr><td>The dimmer does nothing</td><td>No interior lights are linked, or they're Static. Add them on the Lamps tab; Checks › <span class="ui">Make Movable</span>.</td></tr>
+      <tr><td>Exposure ignores the Look tab</td><td>A post-process volume with a higher priority overrides it. Checks › <span class="ui">Set priority 0</span>, or turn Apply exposure off.</td></tr>
+      <tr><td>A surface can't be restyled</td><td>It has no swatches and there are no fallback swatches. Add swatches on the Materials tab.</td></tr>
+      <tr><td>Clicking a surface does nothing in the visit</td><td>Its mesh has no collision for clicks. The Checks tab finds it; <span class="ui">Make clickable</span> turns on click-only collision (walking is unaffected).</td></tr>
+      <tr><td>A surface “changes nothing”</td><td>Its Parts no longer match the actor's materials (a renamed slot or re-imported mesh). Fix with <span class="ui">Use all materials</span> on the Checks tab, or pick the parts under Edit on the Materials tab.</td></tr>
+      <tr><td>A finish looks the same as another</td><td>The swatch sets parameters its material doesn't have (a typo, or a parameter-only swatch on a material without them). The Checks tab names the parameters; give the swatch its own Base Material, or fix the names.</td></tr>
+      <tr><td>Floor-plan markers missing or blank labels</td><td>A waypoint has no Room Id or Room Name, or two share a Room Id. Fill them in (Details panel).</td></tr>
+      <tr><td>A waypoint puts the visitor in the wrong place or outside</td><td>Something stands on its landing spot (the arrow on the floor), so the visitor is moved to the nearest free spot. The Checks tab names the actor; move the waypoint or the actor.</td></tr>
+      <tr><td>The Controls card doesn't open at the start</td><td>It opens once per computer. Switch it on the Visitors tab, or type <span class="cmd">ArchViz.Controls reset</span> to see it again on the next visit.</td></tr>
+      <tr><td>Floor plan button shows nothing</td><td>No floor-plan volume. Rooms › <span class="ui">Add floor plan</span>, then <span class="ui">Bake plan</span>.</td></tr>
+      <tr><td>The Cut open row is missing in Orbit</td><td>There are no floor-plan volumes, or Dollhouse is off on the Visitors tab. Add one volume per storey on the Rooms tab.</td></tr>
+      <tr><td>A ceiling stays, or a storey's floor disappears, when cut open</td><td>Rooms › Dollhouse › <span class="ui">Preview cut</span> shows what's hidden. Adjust the storey's <span class="ui">Ceiling band</span>, or add the actor with <span class="ui">Always hide</span> / <span class="ui">Never hide</span>. Check that each box's top sits just under the next floor.</td></tr>
+      <tr><td>The sun study doesn't move the sun</td><td>An HDRI is the sky (its sun stays where the photo has it). Choose Physical sky on the Sky tab.</td></tr>
+      <tr><td>Sun hours look wrong, or a room shows no direct sun</td><td>They're measured from the room's waypoint across the room; move a waypoint that sits in a corner or a cupboard. Check the site and north (Location tab).</td></tr>
+      <tr><td>No stars at night</td><td>Stars are off on the Sky tab, an HDRI is the sky, or it's overcast. Give auto exposure a few seconds after jumping from day to night.</td></tr>
+      <tr><td>Orbit starts in the wrong place</td><td>An orbit point's start distance or angle is outside its limits. Checks › <span class="ui">Fix limits</span>.</td></tr>
+      <tr><td>A package changes some surfaces but not others</td><td>Surfaces were deleted or renamed since the style was saved, or the style comes from another level. Checks › <span class="ui">Remove missing</span>, or Materials › <span class="ui">Update</span> the style from the current look.</td></tr>
+      <tr><td>The Options row is missing from the Materials drawer</td><td>No group has two or more options. Add an option on the Materials tab (Options); Checks lists groups with only one.</td></tr>
+      <tr><td>A package doesn't change the furniture</td><td>The style was saved before the options existed, or a group or option was renamed since. Materials › <span class="ui">Update</span> the style with the options you want shown.</td></tr>
+      <tr><td>The packaged build skips the menu</td><td>The project's start level isn't the front end. Checks › <span class="ui">Start on front end</span>.</td></tr>
+      <tr><td>Quit closes the app without the end screen</td><td>No agent contact is set, or there's no front-end level. Fill in Start-up › Agent contact.</td></tr>
+      <tr><td>Light leaks into big rooms</td><td>Lumen's reach is too short for the space. Increase it under Look › Global illumination.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- What's new -------------------------------------------------------------------------------- -->
+<section id="changes">
+  <div class="eyebrow">Reference</div>
+  <h2>What's new</h2>
+  <h3>v1.0</h3>
+  <ul>
+    <li>First release on Fab.</li>
+    <li>Materials set-up made easy: <span class="ui">Make selected customisable</span> (one surface per material), finishes created straight from your materials with rendered thumbnails, surfaces edited in place with a live preview, and material checks.</li>
+    <li>Included demo level: a furnished three-storey home with every feature set up, and a guided tour that walks you through setting it up from scratch (Show me, self-ticking practice tasks, viewport callouts, progress remembered, minimise to one line, Reset demo).</li>
+    <li>Devices: music players (spatial sound, playlists, your own audio files), fans with spinning blades and projectors / TVs that cast a video onto a wall as real light (MegaLights). Visitors switch them on with a floating play icon; ceiling-mounted devices show it underneath.</li>
+    <li>Outdoor lights switch on at dusk and off at dawn by the sun, like a photocell; bulbs glow with interior and outdoor lights.</li>
+    <li>Trees and seasons: the new foliage material flowers, turns and sheds leaves with the site's date and hemisphere, gets wet in rain and holds snow.</li>
+    <li>More realistic snow: soft, thinner cover under trees, bare gaps along walls and around trunks and posts, patchy edges as it builds up.</li>
+    <li>New master materials: <span class="ui">M_ArchViz_Glass</span>, <span class="ui">M_ArchViz_Foliage</span>, and a light-mask glow on <span class="ui">M_ArchViz_SurfaceTextured</span>.</li>
+  </ul>
+  <h3>v0.9.1 (beta)</h3>
+  <ul>
+    <li>Floor plan works as a switch while exploring: it stays on screen as the visitor walks until Floor Plan is pressed again, and closes when another mode or Orbit opens. A soft cone from the visitor's dot shows which way they face.</li>
+    <li>Tidier floor plan: the storey name has the header to itself with the areas on a line underneath; room labels put the area and sun hours on a second line and stay inside the plan.</li>
+    <li>Controls card: the dock's new <span class="ui">?</span> button shows the keyboard and mouse, touch and gamepad controls with pictures; it opens by itself on the first visit (switch on the Visitors tab).</li>
+    <li>Waypoints never land the visitor inside furniture or walls (they move to the nearest free spot), and a new check names anything standing on a landing spot. Waypoints show a pin icon in the level.</li>
+    <li>New console commands <span class="cmd">ArchViz.Mode</span> and <span class="cmd">ArchViz.Controls</span>.</li>
+  </ul>
+  <h3>v0.9.0 (beta)</h3>
+  <ul>
+    <li>Rain and snow over any sky (with their own cloud deck, haze and dimmer sun), never falling indoors. Weather on materials: the <span class="ui">M_ArchVizExterior</span> master material and the <span class="ui">MF_ArchVizWeather</span> function give wet surfaces, puddles with rain ripples, splashes and snow cover that build up and dry or melt over time. New console command <span class="cmd">ArchViz.Weather</span>.</li>
+    <li>Ambient sound that follows the time of day, the weather and whether the visitor is indoors (birds, crickets, wind, rain, rain on the windows), plus an optional sound per room. New console command <span class="cmd">ArchViz.Sound</span>.</li>
+    <li>Now a self-contained plugin: copy it into any UE 5.8 project's Plugins folder. It sets its own renderer requirement and the level's game mode, and keeps your generated files in your project.</li>
+    <li>The Experience actor stays at the world origin and shows only the North Point billboard.</li>
+    <li>New check: Play not using ArchViz Game Mode, with a one-click fix.</li>
+    <li>Packaged builds include the full visitor interface.</li>
+    <li>Desktop, Touch and Gamepad input modes, chosen at setup and switching live to the device in use: a walking stick and gestures for touchscreens and tablets (Pixel Streaming), full controller support with a centre aim point and D-pad drawers, bigger tap targets and hints that match the device.</li>
+    <li>Orbit view glides smoothly between orbit points (eased, lifted over the building) instead of snapping. New <span class="ui">Orbit transition</span> time on the Visitors tab (default 2.5 s) and a per-point <span class="ui">Transition time</span>; Reduce motion makes it a cut.</li>
+    <li>Start-up flow (new Start-up tab): splash screen, intro video, a front-end menu to choose the development and its décor style, décor styles saved from the Materials tab, Main menu in the visit's Quit card, an end screen with the agent's contact, and idle return to the menu for kiosks. New start-up checks.</li>
+    <li>Info points: clickable “i” markers with a card (pictures, title, text and an optional link), added on the Rooms tab, switched on the Visitors tab, with mouse, touch and gamepad support and checks.</li>
+    <li>Room areas: Bake plan measures each room and storey; the floor plan shows “Kitchen · 18.4 m²” and storey / home totals, in metric or imperial, with your own figures as overrides.</li>
+    <li>Tape measure: a Measure button in the dock; two clicks, taps or A presses give a line with its length, snapping to edges, corners, vertical and level; Undo, Clear and Done.</li>
+    <li>Finish packages: the site's décor styles appear as Packages in the Materials drawer; one tap restyles every room, with “customised” and Reset to package after single-surface changes.</li>
+    <li>My selections: the package and each surface's finish, from the Materials drawer and the end screen; Save writes a PNG and an HTML page to the output folder.</li>
+    <li>Layout and furniture options: groups such as Furnished / Unfurnished set up on the Materials tab from actors in the level (with an editor preview and checks), switched by visitors in the Materials drawer with a quick fade, remembered by décor styles and listed in My selections.</li>
+    <li>Dollhouse: Orbit's Cut open row cuts a storey open (upper floors, roof and ceilings hidden, worked out from the floor-plan volumes) and looks down into it; clickable room labels fly the visitor into a room. Editor preview, per-storey ceiling band and always / never hide lists on the Rooms tab, a Visitors-tab switch and checks.</li>
+    <li>Sun study: dates (21 Mar / Jun / Sep / Dec, Today) and Play the day (sunrise to sunset in about 20 s) in the Lighting drawer, with a sky compass, day length and sun position; the sun's path arcing over the building in Orbit (Sun path button); hours of direct sun on the room labels. Visitors-tab switches and checks.</li>
+    <li>Night sky: real stars and the Milky Way (NASA Deep Star Maps 2020) placed for the site, date and time, fading in through twilight and thinning under cloud, with a town glow on the horizon (Light pollution, Dark site to City centre). Stars switch, brightness and light pollution on the Sky tab.</li>
+  </ul>
+  <p class="updated">This manual is updated with every release. Last updated 18 November 2026.</p>
+</section>
+
+<!-- Credits ----------------------------------------------------------------------------------- -->
+<section id="credits">
+  <div class="eyebrow">Reference</div>
+  <h2>Credits</h2>
+  <p>ArchViz Experience includes this third-party content (also listed in the plugin's <span class="ui">CREDITS.txt</span>):</p>
+  <ul>
+    <li><strong>Night sky star map</strong>: Deep Star Maps 2020, NASA/Goddard Space Flight Center Scientific Visualization Studio. Star data from Gaia DR2 (ESA/Gaia/DPAC), Hipparcos-2, Tycho-2 and the Yale Bright Star catalogue. Public domain; <a href="https://svs.gsfc.nasa.gov/4851">svs.gsfc.nasa.gov/4851</a>.</li>
+    <li><strong>Ambient sound</strong> (all CC0, from <a href="https://opengameart.org">OpenGameArt</a>; trimmed, looped and levelled): day birds and wind from “Park ambiences” by Thimras; night crickets from “Crickets Ambient Noise - loopable” by Wolfgang_ (Ted Kerr); rain from “AMB Rain Loop 2” by Kresiek; rain indoors from “Rain on Window Loop” by alxl.</li>
+    <li><strong>Default HDRI sky</strong>: “Kloofendal 48d Partly Cloudy (Pure Sky)” by Greg Zaal, <a href="https://polyhaven.com">Poly Haven</a>. CC0.</li>
+    <li><strong>Demo level furniture</strong>, <a href="https://polyhaven.com">Poly Haven</a>, CC0: “Mid Century Lounge Chair” by Kuutti Siitonen; “Modern Arm Chair 01” by Vibrant Nordic; “Modern Coffee Table 01” by Amin; “Dining Chair 02”, “Modern Ceiling Lamp 01” and “Potted Plant 04” by James Ray Cock; “Modern Wooden Cabinet” by Patrik Pangerl; “Drawer Cabinet” by Ulan Cabanilla; “Ottoman 01” by Caspian Fortune. Fabrics “Wool Boucle”, “Rough Linen” and “Jogging Melange” by colormass and Rico Cilliers. Ground: “Concrete Pavement 02” by Charlotte Baglioni. Trees: “Jacaranda Tree” and “Fir Tree 01” by Rob Tuytel and Rico Cilliers. Music: “Jazz at the park” by Manwithmetalpig and “Softly” by Loyalty Freak Music, <a href="https://commons.wikimedia.org">Wikimedia Commons</a>, CC0. Demo projector film: original footage of the demo level. Props: “Street Lamp 01” by Josh Dean; “Ceiling Fan” by Ulan Cabanilla; “Boombox” by Thomas Paul Mouilleron; “Filmstrip Projector 8mm” by PeterM.</li>
+    <li><strong>Wood textures</strong> (Oak and Walnut swatches), <a href="https://polyhaven.com">Poly Haven</a>, CC0: “Oak Veneer 01” by Jenelle van Heerden; “Dark Wood” by Dimitrios Savva, Rico Cilliers and Dario Barresi (tinted toward walnut).</li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<dialog class="lightbox" id="lightbox" aria-label="Enlarged screenshot"><img alt=""></dialog>
+
+<script>
+// Click a screenshot to enlarge it; click again or press Esc to close.
+(function () {
+  const box = document.getElementById('lightbox');
+  const big = box.querySelector('img');
+  document.querySelectorAll('figure img').forEach(function (img) {
+    img.addEventListener('click', function () { big.src = img.src; big.alt = img.alt; box.showModal(); });
+  });
+  box.addEventListener('click', function () { box.close(); });
+
+  // Highlight the chapter in view.
+  const links = Array.from(document.querySelectorAll('.toc a'));
+  const byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  const seen = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && byId[e.target.id]) {
+        links.forEach(function (a) { a.classList.remove('active'); });
+        byId[e.target.id].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('main section[id]').forEach(function (s) { seen.observe(s); });
+
+  // Close the narrow-screen menu after picking a chapter.
+  links.forEach(function (a) { a.addEventListener('click', function () { document.getElementById('sidebar').classList.remove('open'); }); });
+})();
+</script>
+</body>
+</html>
