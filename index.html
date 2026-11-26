@@ -173,7 +173,7 @@ dialog.lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 12px; cu
 <!-- Sidebar ----------------------------------------------------------------------------------- -->
 <nav class="sidebar" id="sidebar" aria-label="Contents">
   <a class="brand" href="#welcome"><img src="images/lockup.png" alt="ArchViz Experience"></a>
-  <div class="version">Manual for <b>v1.0</b> · Unreal Engine 5.8</div>
+  <div class="version">Manual for <b>v1.0.1</b> · Unreal Engine 5.8</div>
   <button class="menu-toggle" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')">Contents</button>
   <ul class="toc">
     <li class="group">Getting started</li>
@@ -1051,6 +1051,13 @@ dialog.lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 12px; cu
 <section id="changes">
   <div class="eyebrow">Reference</div>
   <h2>What's new</h2>
+  <h3>v1.0.1</h3>
+  <ul>
+    <li><span class="ui">Create experience in level</span> no longer flies the viewport far above the clouds: the new Experience is selected and the view stays on your building, so you see the sky, sun and lighting arrive. The Experience's <span class="ui">Select</span> buttons keep the view too.</li>
+    <li>Twilight and night skies are a clean deep blue instead of purple (the atmosphere's ozone layer now absorbs red as well as green). Daytime is unchanged.</li>
+    <li>The ArchViz Experience mode's tab rail fits all its tabs, down to <span class="ui">Checks</span>, in a 1080p editor window.</li>
+    <li>With <span class="cmd">ArchViz.MouseAsTouch 1</span> (testing touch with a mouse) the cursor stays visible in touch mode and dragging to look around works. Real touchscreens are unchanged.</li>
+  </ul>
   <h3>v1.0</h3>
   <ul>
     <li>First release on Fab.</li>
