@@ -173,7 +173,7 @@ dialog.lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 12px; cu
 <!-- Sidebar ----------------------------------------------------------------------------------- -->
 <nav class="sidebar" id="sidebar" aria-label="Contents">
   <a class="brand" href="#welcome"><img src="images/lockup.png" alt="ArchViz Experience"></a>
-  <div class="version">Manual for <b>v1.0.1</b> · Unreal Engine 5.8</div>
+  <div class="version">Manual for <b>v1.0.2</b> · Unreal Engine 5.8</div>
   <button class="menu-toggle" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')">Contents</button>
   <ul class="toc">
     <li class="group">Getting started</li>
@@ -631,7 +631,7 @@ dialog.lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 12px; cu
   <h2>Devices</h2>
   <div class="split">
     <div>
-      <p class="lead">Things visitors switch on and off while they explore: a radio or speaker playing music, a ceiling fan. A round glass play icon floats above each one when visitors are near.</p>
+      <p class="lead">Things visitors switch on and off while they explore: a radio or speaker playing music, a projector or TV playing a video, a ceiling fan. A round glass play icon floats above each one when visitors are near.</p>
       <h3>Add a device</h3>
       <p>Select the object in the viewport (your own radio, speaker or fan model works), then press <span class="ui">Music player</span> or <span class="ui">Fan</span>. It gets an <span class="ui">ArchViz Device</span> component and appears in the list below. Press <span class="ui">Edit</span> on its row to set it up:</p>
       <ul>
@@ -1051,6 +1051,11 @@ dialog.lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 12px; cu
 <section id="changes">
   <div class="eyebrow">Reference</div>
   <h2>What's new</h2>
+  <h3>v1.0.2</h3>
+  <ul>
+    <li>The camera stays on the visitor after leaving Orbit or the dollhouse. Before, a waypoint jump (or the first step) straight after Orbit could leave the view hanging several metres outside the building.</li>
+    <li>The <span class="ui">Devices</span> tab mentions projectors and TVs (video devices) alongside music players and fans.</li>
+  </ul>
   <h3>v1.0.1</h3>
   <ul>
     <li><span class="ui">Create experience in level</span> no longer flies the viewport far above the clouds: the new Experience is selected and the view stays on your building, so you see the sky, sun and lighting arrive. The Experience's <span class="ui">Select</span> buttons keep the view too.</li>
